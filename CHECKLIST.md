@@ -8,8 +8,8 @@ Every item is taken from the brief. An item is ticked only once it has been **ve
 |---|---|---|---|
 | A1 | A live Vercel URL where a classmate can sign in and **watch the data update without refreshing** | | ☐ |
 | A2 | A worker that runs all the time on Railway, **recording each run in a table** | | ☐ |
-| A3 | A high-level chart of the data flow | | ☐ |
-| A4 | Freshness shown on the page, with a **designed stale state** | | ☐ |
+| A3 | A high-level chart of the data flow | `docs/data-flow.md`, commit `f3c5018` | ☑ |
+| A4 | Freshness shown on the page, with a **designed stale state** | Fresh seen in the browser 2026-10-28; stale and down written but **not yet seen** | ◐ |
 | A5 | A GitHub repo with commits that show progress | | ☐ |
 | A6 | Ready to explain the work in class (section F) | | ☐ |
 | A7 | **Not one-shot:** built step by step, not by handing the brief to an agent once | | ☐ |
@@ -30,7 +30,7 @@ Every item is taken from the brief. An item is ticked only once it has been **ve
 | # | Requirement | Status |
 |---|---|---|
 | C1 | **Live source:** data from one source that changes on its own | ☑ Divvy station_status, new snapshot every ~60 s, 30 stations changed in 3 min at midnight |
-| C2 | **Data flow:** a high-level chart of how data moves, **made before the code** (commit order proves it) | ☐ |
+| C2 | **Data flow:** a high-level chart of how data moves, **made before the code** (commit order proves it) | ☑ `f3c5018` chart, then `71254be` migration, `f519a09` worker, `8baa758` Realtime |
 | C3 | **Worker:** runs all the time on Railway, saves **only what changed**, records each run in a table | ☐ |
 | C4 | **Live page:** updates without a refresh, shows freshness, has **loading, stale and down** states | ☐ |
 | C5 | **Personal:** each person chooses what they follow, with **RLS on their choices** | ☐ |
@@ -41,11 +41,11 @@ Every item is taken from the brief. An item is ticked only once it has been **ve
 
 | # | Requirement | Status |
 |---|---|---|
-| D1 | Next.js and Tailwind CSS | ☐ |
-| D2 | Clerk for sign-in | ☐ |
-| D3 | Supabase for the database **and Realtime** | ☐ |
+| D1 | Next.js and Tailwind CSS | ☑ `npm run build` passes |
+| D2 | Clerk for sign-in | ☑ signed in locally with app DockCheck Live (dev keys) |
+| D3 | Supabase for the database **and Realtime** | ☑ page showed "Live · checked 13 s ago" from a Realtime runs insert |
 | D4 | Railway for the worker, a small Node.js program that runs all the time | ☐ |
-| D5 | Worker in **its own folder** in the app's repo, and that folder in **`tsconfig.json` `exclude`** (or the Next.js build fails) | ☐ |
+| D5 | Worker in **its own folder** in the app's repo, and that folder in **`tsconfig.json` `exclude`** (or the Next.js build fails) | ☑ `worker/`, excluded in `0a20097`, build passes |
 | D6 | Code in our own GitHub repo | ☐ |
 | D7 | Page on Vercel's free Hobby plan | ☐ |
 | D8 | Worker on Railway with **root directory set to the worker's folder** | ☐ |
@@ -59,7 +59,7 @@ Every item is taken from the brief. An item is ticked only once it has been **ve
 | E2 | Set usage limits and spending alerts wherever offered | ☐ |
 | E3 | No payment method unless required; if required, set a spending cap first | ☐ |
 | E4 | **Railway:** sign up **with GitHub** so the account is verified (unverified = restricted outbound network, the worker may not reach Divvy). If restricted, **tell the teaching staff before paying** | ☐ |
-| E5 | **Realtime messages:** save only what changed, so the worker doesn't burn a month of messages in hours | ☐ |
+| E5 | **Realtime messages:** save only what changed, so the worker doesn't burn a month of messages in hours | ☑ worker test + local logs: 2,076 once, then 0–20 per run (`docs/evidence/worker-local-run.txt`) |
 | E6 | Supabase pauses after a week without use: open the app now and then until grades are back | ☐ |
 | E7 | Ask your agent: "Walk me through the free tier limits for each service my app uses, and how to set usage limits and spending alerts for each one." | ☐ |
 
@@ -92,3 +92,31 @@ Every item is taken from the brief. An item is ticked only once it has been **ve
 - The worker **test runs on a saved copy** of the Divvy response (a fixture), not the live feed.
 - A real **classmate** signs in, **chooses** a station, and **watches it update without refreshing**.
 - Keep A4's repo, Vercel project and Supabase project untouched: A5 is a separate repo and project.
+
+## Open items, audited 2026-10-28 (read as a grader looking for reasons to fail)
+
+Blockers: each one alone makes the submission incomplete.
+
+1. **Nothing is pushed.** 8+ commits exist only on the local branch `step3-data-flow`. GitHub `main` still ends at step 1. (A5, G2)
+2. **README.md is still A4's.** It links the **A4 Vercel URL** and describes saved times and history. A grader following it lands on the wrong app. (G2)
+3. **No Vercel deployment** for A5, so no URL. (A1, C6, D7, G1)
+4. **Worker isn't on Railway.** Sign-up is blocked; it only runs on fe02 while this session is open. Tell the teaching staff in writing if it's still blocked. (A2, C3, D4, D8, E4)
+5. **No classmate test.** Someone else must sign in, follow a station and watch it change. (A1, B6, C6)
+6. **Stale and down states are coded but no one has seen them.** Stop the worker for over 2 min to see stale; make a run fail to see down. Screenshot both. (A4, B5, C4)
+7. **A live tick hasn't been seen yet.** "Live · checked" works, but no count has changed on screen. Record a few seconds of one changing. (A1, C4)
+
+Will lose marks:
+
+8. **Two secret keys were pasted into the agent chat** (Supabase secret, Clerk secret `dockcheck-live-local`). Delete both and make fresh ones before deploying. Never paste a secret key.
+9. **End-to-end tests are broken.** `e2e/` still uses `saved_stations`, "Save station", "Remove", `/?demo=api-down`. Update the isolation test (two users, `follows`) and the states test (stale, down). (C5, F4)
+10. **Isolation is unproven.** RLS on `follows` is written, but no second account has checked it can't see the first one's follows. (C5)
+11. **`/security-review` hasn't been run** on the branch, and AGENTS.md requires it before merging.
+12. **B2 not done:** no Railway CLI, no Clerk CLI, Vercel isn't connected to GitHub, and the Supabase MCP is signed in but hasn't been used from an agent session. The "List the MCP servers and CLIs…" prompt hasn't been run.
+13. **Ask-your-agent prompts aren't recorded:** B3 walkthrough (done in chat, not saved), B4 "last three runs' logs" (needs Railway), B5 trace, B6 quiz. Save the answers in `docs/learning.md`.
+14. **Free-tier limits and spending alerts aren't set** for Vercel, Supabase, Clerk or Railway, and the E7 prompt hasn't been run. (E1–E3, E7)
+15. **The A4 migrations are still in `supabase/migrations/`.** `supabase db push` would create A4's tables in this project. Move them out. The A5 migration was applied by hand in the SQL editor, so Supabase's migration history doesn't list it.
+16. **`/context` hasn't been checked** to show `AGENTS.md` loaded. (D9)
+17. **Design-process write-up for live states** (loading, fresh, stale, down, the highlight on a change) isn't in the README yet. (C7)
+18. **Not practised:** F1–F4 out loud.
+
+Nits a strict grader still notices: `package.json` is named `dbs-a4`; `runs` grows by ~2,900 rows a day with no cleanup (fine for the course, but say so).
