@@ -1,88 +1,110 @@
-# DockCheck
+# DockCheck Live
 
-**Will there be a Divvy bike, or a free dock, at my station when I leave?**
+**Follow the Divvy stations you use, and watch their bikes and docks change without refreshing.**
 
-Live: **https://dockcheck-phi.vercel.app** (make an account with Google or email)
+Live: **_Vercel URL added after deploy_** (make an account with Google or email)
 
-> I save Ellis & 58th as "Lab" → at 5:40 it tells me 2 bikes left, both e-bikes → I sign in on my phone tomorrow, and my stations and times are still there.
+> I follow Ellis & 58th as "Lab" → a worker on Railway polls Divvy and saves only what changed → my open page ticks from 3 bikes to 2 on its own, and tells me how fresh that is.
 
-MPCS 51238 Design, Build, Ship, Assignment 4: Full Stack App.
+MPCS 51238 Design, Build, Ship, Assignment 5: Live Data System. Extends DockCheck (Assignment 4, a separate repo and Supabase project, untouched).
 
 ## What it does
 
-- **Save the stations you use**, with your own name for each ("Lab", "Home"), and whether you need a bike or a free dock there.
-- **See live counts for exactly those stations:** the big number is what you need (bikes or docks), with the e-bike / classic split underneath.
-- **Add when you usually leave** ("Mon–Fri at 5:40 PM"). Each time you open the app it records what was there, and over time each departure shows *"Empty 3 of 5 times you checked around then"*, from **your own** history only.
-- **Your data is yours:** sign in on any device and it's there; nobody else can see it.
+- **Follow the stations you use**, with your own name for each ("Lab", "Home"), and whether you need a bike or a free dock there.
+- **Counts update on their own.** A worker checks Divvy every 30 s and saves only the stations that changed; Supabase Realtime pushes those changes to your open page. A count that changes lights up for a moment.
+- **You always know how fresh it is:** "Live · checked 12 s ago", or a clear warning when it isn't.
+- **Your follows are yours:** nobody else can see them, and Realtime only sends you the stations you follow.
+
+## Data flow
+
+The chart was drawn and committed before any worker or Realtime code: [`docs/data-flow.md`](docs/data-flow.md).
+
+```
+Divvy station_status.json ──GET every 30 s──▶ worker (Railway, worker/)
+   worker ──upsert only changed stations──▶ station_status   (secret key)
+   worker ──1 row every run, even on failure──▶ runs
+   station_status ──Realtime, RLS: only stations you follow──▶ page
+   runs ──Realtime──▶ page (fresh / stale / down)
+   page ──follow / unfollow (Server Action)──▶ follows (your rows, RLS)
+```
 
 ## Design process
 
-- **Explored first.** I started from a gym-crowd idea, but UChicago publishes no occupancy feed. Divvy's live feed answers a question students have every day, and it's distinct from the usual weather / Pokémon apps.
-- **One main task, written down before building** (the quote above, in `AGENTS.md`). Every screen serves it: no map, no city-wide browsing, just *your* stations.
-- **Glanceable.** One big number per station, red at 0 and green otherwise. The detail is underneath for when you want it.
-- **Every state designed:**
-  - empty ("No stations yet" with a hint)
-  - loading (skeleton cards)
-  - nothing found (search with no match, or a station Divvy dropped)
-  - Divvy down (last known counts with their time)
-  - stale data
-  - a station that's not renting
-- **Mobile-first:** a single column up to 32rem, touch targets at least 44 px, labelled form fields, dark mode, times always in Chicago time.
+- **Same main task as A4, now live.** A4 answered "is there a bike?" when you opened the page. A5 keeps answering while the page stays open, so you can watch for the bike to come back.
+- **Glanceable, unchanged from A4.** One big number per station, red at 0 and green otherwise; e-bike / classic split underneath.
+- **Live data has its own states**, all based on the newest worker run:
+
+  | State | When | What you see |
+  |---|---|---|
+  | Loading | before Realtime connects | grey pulsing dot, "Connecting to live updates…" |
+  | Fresh | newest run worked, under 2 min ago | green dot, "Live · checked 12 s ago" |
+  | Stale | no run for 2 min (about 3 missed runs) | amber box "Updates have paused", counts dimmed |
+  | Down | newest run failed (Divvy unreachable) | red box "Can't reach Divvy right now. Counts below are from 3:42 AM", counts dimmed |
+
+  Stale and down are deliberately different: stale means the worker stopped reporting, down means the worker is fine but Divvy isn't. Counts stay visible but dimmed in both, because an old number is still useful if it's labelled as old.
+- **Changes are noticeable, not noisy.** A changed count gets a 1.5 s highlight (an outline instead with reduced motion). "Checked … ago" ticks every 5 s without announcing itself to screen readers; the stale and down boxes do (`role="status"`).
+- **Other states from A4 kept:** empty ("You're not following any stations yet"), search loading / nothing found / Divvy down, a station not renting, a station Divvy no longer lists.
+- **Mobile-first:** a single column up to 32rem, touch targets at least 44 px, labelled form fields, dark mode, times in Chicago time.
 
 ## Stack
 
 | Part | Choice |
 |---|---|
-| App | Next.js 15 (App Router), Tailwind CSS 4 |
-| Sign-in | Clerk (development keys) |
-| Data | Supabase Postgres, row-level security on every table |
-| External API | [Divvy GBFS](https://gbfs.lyft.com/gbfs/1.1/chi/en/gbfs.json) (no key) |
-| Hosting | Vercel Hobby |
-| Test | Playwright + `@clerk/testing` |
+| App | Next.js 15 (App Router), Tailwind CSS 4, on Vercel Hobby |
+| Sign-in | Clerk (development keys, app "DockCheck Live") |
+| Data + live updates | Supabase Postgres + Realtime (project `dockcheck-live`) |
+| Worker | Node.js 22 in [`worker/`](worker/), on Railway, no npm packages |
+| Source | [Divvy GBFS](https://gbfs.lyft.com/gbfs/1.1/chi/en/gbfs.json) `station_status` (no key, new snapshot every ~60 s) |
+| Tests | `node --test` for the worker, Playwright + `@clerk/testing` for the page |
 
 ## How it works
 
-- **Who you are:** Clerk's middleware reads your session on every request, and every page, route and server action starts with `await auth.protect()`.
-- **What you may see:** decided in **Supabase**. The server talks to Supabase *as you*, sending your Clerk token (`src/lib/supabase.ts`, publishable key only). Supabase trusts Clerk through third-party auth, and RLS only returns rows where `user_id = auth.jwt()->>'sub'`. Signed-out visitors have no access to any table.
-- **Where Divvy is called:** on the **server** (`src/lib/gbfs.ts`), cached for 60 s to match the feed's `ttl`. The two feeds are about 1.9 MB, so one cached fetch serves everyone, instead of each phone downloading the whole city. `/api/stations` (search) and `/api/status` (live counts) are behind sign-in.
-
-Diagrams and plain-words explanations of all of this are in [`docs/learning.md`](docs/learning.md).
+- **The worker** ([`worker/index.js`](worker/index.js)) fetches `station_status.json` every 30 s (8 s timeout), compares each station with the last snapshot it saved, and upserts only stations whose bikes, e-bikes, docks, `is_renting` or `is_returning` changed. A new `last_reported` alone doesn't count: ~1,100 stations check in every few minutes with the same counts. On start it reloads the snapshot from `station_status`, so a restart doesn't rewrite every row. Every run adds one row to `runs`, even when nothing changed or Divvy failed. It writes with the Supabase **secret key**, read from Railway's variables.
+- **The page** ([`src/app/page.tsx`](src/app/page.tsx)) renders your follows and their current counts on the server, as you (your Clerk token, publishable key). Then [`live-stations.tsx`](src/app/live-stations.tsx) subscribes to Realtime changes on `station_status` (your stations) and new `runs`, and catches up whenever it (re)connects.
+- **Who you are:** Clerk's middleware reads your session; every page, route and Server Action starts with `await auth.protect()`. Supabase trusts Clerk as a third-party auth provider, so RLS sees your Clerk id in `auth.jwt()->>'sub'`.
+- **Station names** for search and labels come from Divvy's `station_information.json`, fetched on the server and cached for 60 s.
 
 ### Data model
 
-| Table | Holds |
-|---|---|
-| `saved_stations` | your stations: `station_id` (GBFS), `nickname`, `need` (bike/dock) |
-| `departures` | when you leave from a saved station: `weekdays`, `leave_at` |
-| `checks` | what was there each time you looked: `bikes`, `ebikes`, `docks`, `checked_at` |
+Created by [`supabase/migrations/20261028065844_live_tables.sql`](supabase/migrations/20261028065844_live_tables.sql).
 
-Each has `user_id` and RLS. Created as migrations in [`supabase/migrations/`](supabase/migrations/).
+| Table | One row is | Written by | Read by | Realtime |
+|---|---|---|---|---|
+| `follows` | you following one station: `station_id`, `nickname`, `need` | you (RLS) | you (RLS) | no |
+| `station_status` | a station's latest counts | the worker only | signed-in users, **only stations they follow** (RLS) | yes |
+| `runs` | one worker run: `started_at`, `finished_at`, `ok`, `rows_changed`, `error` | the worker only | any signed-in user | yes |
+
+Realtime only sends a change when all three are in place: the table is in the `supabase_realtime` publication, `authenticated` has `select`, and an RLS policy lets that person read the row.
 
 ## Tests
 
 ```bash
-npx playwright test                       # starts the dev server on :3000
-BASE_URL=https://dockcheck-phi.vercel.app npx playwright test   # or test the live site
+cd worker && npm test        # worker logic on two saved Divvy responses
+npx playwright test          # page, against the dev server on :3000 (the worker must be running)
 ```
 
-- `e2e/isolation.spec.ts`: two users sign in, each saves a station, and neither can see the other's. **Watched failing first:** with RLS broken on purpose (`e2e/break-rls.sql`) it failed with *"user B can see user A's station"*. After `e2e/fix-rls.sql` it passed. Output in [`docs/evidence/`](docs/evidence/).
-- `e2e/states.spec.ts`: "nothing found" and "Divvy down" (`/?demo=api-down`) both show their designed state.
-
-Needs Clerk keys in `.env.local`. The test users are `+clerk_test` addresses in the development instance.
-
-## Security
-
-- Keys live only in `.env.local` (git-ignored) and Vercel's environment variables. `.claude/settings.json` denies the agent `Read(./.env)` and `Read(./.env.*)`, committed before any key existed.
-- `/security-review` ran on each branch before merging: [`docs/security-review.md`](docs/security-review.md).
+- [`worker/stations.test.js`](worker/stations.test.js): runs the worker's parsing and "what changed" logic on two real responses saved 3 min apart ([`docs/evidence/`](docs/evidence/)). Checks: 2,076 stations parsed; exactly 28 changed; `last_reported`-only and disabled-only changes ignored; the same response twice saves nothing; an empty table saves everything; a non-GBFS response is rejected.
+- [`e2e/isolation.spec.ts`](e2e/isolation.spec.ts): two users each follow a station; neither can see the other's.
+- [`e2e/states.spec.ts`](e2e/states.spec.ts): empty, nothing found, and the live line reaching "Live · checked".
+- [`e2e/freshness.spec.ts`](e2e/freshness.spec.ts): the loading / fresh / stale / down rules.
 
 ## Run it locally
 
 ```bash
 npm install
-# create .env.local yourself with: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY,
-# NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in, NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up,
+# create .env.local yourself: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY,
 # NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 npm run dev
+
+# worker: create worker/.env yourself with SUPABASE_URL and SUPABASE_SECRET_KEY
+cd worker && npm run dev
 ```
 
-Agent context for this repo is in [`AGENTS.md`](AGENTS.md); the requirement-by-requirement checklist is [`CHECKLIST.md`](CHECKLIST.md).
+To see the **down** state on purpose, start the worker with a broken feed URL: `FEED_URL=https://gbfs.lyft.com/nope.json npm run dev`. To see **stale**, stop the worker for 2 minutes.
+
+## Security
+
+- Keys live only in `.env.local` / `worker/.env` (git-ignored), Vercel's variables and Railway's variables. `.claude/settings.json` denies the agent reading any `.env` file.
+- The Supabase secret key is used only by the worker. The browser only ever gets publishable keys and the user's own Clerk token.
+
+Agent context: [`AGENTS.md`](AGENTS.md). Requirement-by-requirement status: [`CHECKLIST.md`](CHECKLIST.md). What I learned at each step: [`docs/learning.md`](docs/learning.md).
