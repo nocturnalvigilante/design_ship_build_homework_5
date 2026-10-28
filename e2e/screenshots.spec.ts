@@ -56,7 +56,8 @@ test("live state evidence", async ({ page }) => {
     }
   }
 
-  await expect(page.getByText(EXPECT[SHOT!])).toBeVisible({ timeout: 60_000 });
+  // Stale can take over 2 minutes to appear: the open page notices on its own.
+  await expect(page.getByText(EXPECT[SHOT!])).toBeVisible({ timeout: 5 * 60_000 });
 
   if (SHOT === "tick") {
     // A count Realtime changed gets the "tick" class; wait for one, then let the highlight play.
