@@ -1,0 +1,24 @@
+Call 1: feed last_updated 00:01:08 CDT, ttl 60 s, 2076 stations
+Call 2: feed last_updated 00:04:09 CDT, ttl 60 s, 2076 stations
+Time between feed updates: 181 s
+
+Stations whose counts or status changed: 30 of 2076
+Stations whose last_reported moved (station checked in, maybe same counts): 1116
+Changes per field: {'num_bikes_available': 25, 'num_ebikes_available': 20, 'num_bikes_disabled': 4, 'num_docks_available': 20, 'num_docks_disabled': 1, 'is_renting': 0, 'is_returning': 0}
+Only in call 1: 0, only in call 2: 0
+
+Examples (bikes / e-bikes / docks):
+  Archer Ave & Wentworth Ave               7/6/1  ->  8/7/0
+  Ashland Ave & Belle Plaine Ave           8/3/5  ->  9/4/5
+  Avondale Ave & Irving Park Rd            3/2/14  ->  2/1/14
+  Broadway & Berwyn Ave                    6/3/6  ->  5/3/7
+  Broadway & Waveland Ave                  5/3/8  ->  6/4/7
+  California Ave & Milwaukee Ave           1/1/14  ->  0/0/15
+  Clarendon Ave & Junior Ter               18/13/8  ->  19/13/7
+  Clark St & Armitage Ave                  15/5/8  ->  16/6/7
+  Clark St & Catalpa Ave                   3/1/12  ->  2/0/13
+  Clark St & Chicago Ave                   5/2/1  ->  6/2/0
+  Clark St & Wellington Ave                10/2/1  ->  10/2/1
+  Franklin St & Washington St              1/1/30  ->  3/3/30
+
+Campus stations that changed: 0
