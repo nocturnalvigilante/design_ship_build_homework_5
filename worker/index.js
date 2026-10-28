@@ -4,7 +4,8 @@
 
 import { changedRows, parseFeed } from "./stations.js";
 
-const FEED_URL = "https://gbfs.lyft.com/gbfs/1.1/chi/en/station_status.json";
+// FEED_URL can be pointed at a broken URL to see the page's "down" state on purpose.
+const FEED_URL = process.env.FEED_URL ?? "https://gbfs.lyft.com/gbfs/1.1/chi/en/station_status.json";
 const INTERVAL_MS = 30_000;
 const TIMEOUT_MS = 8_000;
 const PAGE_SIZE = 1000; // Supabase returns at most 1,000 rows per request
