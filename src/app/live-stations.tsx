@@ -55,6 +55,12 @@ export function LiveStations({
   const ids = follows.map((f) => f.station_id);
   const idsKey = ids.join(",");
 
+  // After a follow, the server sends counts for the new station; take them in
+  // instead of waiting for Realtime to reconnect.
+  useEffect(() => {
+    setStatuses((prev) => ({ ...prev, ...initialStatuses }));
+  }, [initialStatuses]);
+
   // Catch up on anything missed before (re)connecting, e.g. while the tab slept.
   const catchUp = useCallback(async () => {
     if (!supabase) return;

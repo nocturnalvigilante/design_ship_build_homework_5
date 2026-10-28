@@ -7,7 +7,8 @@ import { USER_A } from "./users";
 //   SHOT=fresh  worker running normally
 //   SHOT=stale  worker stopped for over 2 minutes
 //   SHOT=down   worker running with FEED_URL pointing at a broken URL
-//   SHOT=tick   worker running; records a video until a followed count changes
+//   SHOT=tick   worker running; records a video until a followed count changes.
+//               TICK_STATIONS="Name A|Name B" also follows stations busy right now.
 // e.g. SHOT=stale npx playwright test e2e/screenshots.spec.ts
 const SHOT = process.env.SHOT;
 
@@ -28,13 +29,17 @@ const EXPECT: Record<string, RegExp> = {
 test.use({ video: SHOT === "tick" ? "on" : "off", viewport: { width: 480, height: 900 } });
 
 async function followIfMissing(page: Page, search: string, name: string) {
-  if ((await page.getByRole("listitem").filter({ hasText: name }).count()) > 0) return;
+  // Only the followed cards, not the search results underneath.
+  const card = page.getByRole("region", { name: "Stations you follow" }).getByRole("listitem").filter({ hasText: name });
+  if ((await card.count()) > 0) return;
   const add = page.getByRole("region", { name: "Follow a station" });
   await add.getByLabel("Find a Divvy station").fill(search);
   await add.getByRole("button").filter({ hasText: name }).first().click();
   await add.getByLabel("What do you call it?").fill(name.split(" & ")[1]);
   await add.getByRole("button", { name: "Follow station" }).click();
-  await expect(page.getByRole("listitem").filter({ hasText: name })).toBeVisible({ timeout: 30_000 });
+  await expect(card).toBeVisible({ timeout: 30_000 });
+  // Its counts appear straight away, not "No live counts" until Realtime reconnects.
+  await expect(card.getByText(/bikes? left|Not renting bikes/)).toBeVisible({ timeout: 15_000 });
 }
 
 test("live state evidence", async ({ page }) => {
@@ -45,14 +50,19 @@ test("live state evidence", async ({ page }) => {
   await clerk.signIn({ page, emailAddress: USER_A });
   await page.goto("/");
   for (const s of BUSY) await followIfMissing(page, s.search, s.name);
+  if (SHOT === "tick") {
+    for (const name of (process.env.TICK_STATIONS ?? "").split("|").filter(Boolean)) {
+      await followIfMissing(page, name, name);
+    }
+  }
 
   await expect(page.getByText(EXPECT[SHOT!])).toBeVisible({ timeout: 60_000 });
 
   if (SHOT === "tick") {
     // A count Realtime changed gets the "tick" class; wait for one, then let the highlight play.
     await expect(page.locator(".tick").first()).toBeVisible({ timeout: 12 * 60_000 });
+    await page.screenshot({ path: "docs/evidence/state-tick.png", fullPage: true });
     await page.waitForTimeout(2500);
-    await page.screenshot({ path: "docs/evidence/state-tick.png" });
     const video = page.video();
     await page.close();
     await video?.saveAs("docs/evidence/live-tick.webm");
