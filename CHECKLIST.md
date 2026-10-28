@@ -10,7 +10,7 @@ Every item is taken from the brief. An item is ticked only once it has been **ve
 | A2 | A worker that runs all the time on Railway, **recording each run in a table** | | ☐ |
 | A3 | A high-level chart of the data flow | `docs/data-flow.md`, commit `f3c5018` | ☑ |
 | A4 | Freshness shown on the page, with a **designed stale state** | Fresh, stale and down captured from the real page: `docs/evidence/live-states.md` | ☑ |
-| A5 | A GitHub repo with commits that show progress | | ☐ |
+| A5 | A GitHub repo with commits that show progress | `main` pushed 2026-10-28: chart → migration → worker → tests → page → evidence, one change per commit | ☑ |
 | A6 | Ready to explain the work in class (section F) | | ☐ |
 | A7 | **Not one-shot:** built step by step, not by handing the brief to an agent once | | ☐ |
 
@@ -97,7 +97,7 @@ Every item is taken from the brief. An item is ticked only once it has been **ve
 
 Blockers: each one alone makes the submission incomplete.
 
-1. **Nothing is pushed.** 8+ commits exist only on the local branch `step3-data-flow`. GitHub `main` still ends at step 1. (A5, G2)
+1. ~~**Nothing is pushed.**~~ **Fixed**: merged and pushed to `main` after a clean `/security-review`. 8+ commits exist only on the local branch `step3-data-flow`. GitHub `main` still ends at step 1. (A5, G2)
 2. ~~**README.md is still A4's.**~~ **Fixed** `d5f90a6`; the Vercel URL is a placeholder until deploy. It links the **A4 Vercel URL** and describes saved times and history. A grader following it lands on the wrong app. (G2)
 3. **No Vercel deployment** for A5, so no URL. (A1, C6, D7, G1)
 4. **Worker isn't on Railway.** Sign-up is blocked; it only runs on fe02 while this session is open. Tell the teaching staff in writing if it's still blocked. (A2, C3, D4, D8, E4)
@@ -110,7 +110,7 @@ Will lose marks:
 8. **Two secret keys were pasted into the agent chat** (Supabase secret, Clerk secret `dockcheck-live-local`). Delete both and make fresh ones before deploying. Never paste a secret key.
 9. ~~**End-to-end tests are broken.**~~ **Fixed** `49e4248`: 8/8 pass. `e2e/` still uses `saved_stations`, "Save station", "Remove", `/?demo=api-down`. Update the isolation test (two users, `follows`) and the states test (stale, down). (C5, F4)
 10. ~~**Isolation is unproven.**~~ **Fixed**: isolation test passes. RLS on `follows` is written, but no second account has checked it can't see the first one's follows. (C5)
-11. **`/security-review` hasn't been run** on the branch, and AGENTS.md requires it before merging.
+11. ~~**`/security-review` hasn't been run**~~ **Fixed**: [`docs/security-review.md`](docs/security-review.md), no findings. on the branch, and AGENTS.md requires it before merging.
 12. **B2 not done:** no Railway CLI, no Clerk CLI, Vercel isn't connected to GitHub, and the Supabase MCP is signed in but hasn't been used from an agent session. The "List the MCP servers and CLIs…" prompt hasn't been run.
 13. **Ask-your-agent prompts aren't recorded:** ~~B3 walkthrough~~ (saved in `docs/learning.md` §3), B4 "last three runs' logs" (needs Railway), B5 trace, B6 quiz. Save the answers in `docs/learning.md`.
 14. **Free-tier limits and spending alerts aren't set** for Vercel, Supabase, Clerk or Railway, and the E7 prompt hasn't been run. (E1–E3, E7)
