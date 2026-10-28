@@ -45,3 +45,24 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
+
+/* A count that Realtime just changed briefly lights up, so the eye catches it. */
+@keyframes tick {
+  from {
+    background-color: color-mix(in srgb, var(--accent) 30%, transparent);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+.tick {
+  animation: tick 1.5s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tick {
+    animation: none;
+    outline: 2px solid var(--accent);
+  }
+}

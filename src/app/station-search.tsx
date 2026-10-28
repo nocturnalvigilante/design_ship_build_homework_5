@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import { saveStation, type SaveState } from "./actions";
+import { followStation, type FollowState } from "./actions";
 
 type Result = { id: string; name: string; capacity: number };
 type Search =
@@ -16,7 +16,7 @@ export function StationSearch() {
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState<Search>({ state: "idle" });
   const [picked, setPicked] = useState<Result | null>(null);
-  const [saveState, save, saving] = useActionState<SaveState, FormData>(saveStation, {});
+  const [saveState, save, saving] = useActionState<FollowState, FormData>(followStation, {});
 
   useEffect(() => {
     const q = query.trim();
@@ -42,7 +42,7 @@ export function StationSearch() {
     };
   }, [query]);
 
-  // After a successful save, start over.
+  // After a successful follow, start over.
   useEffect(() => {
     if (saveState.savedAt) {
       setPicked(null);
@@ -54,7 +54,7 @@ export function StationSearch() {
     return (
       <form action={save} className="rounded-xl border border-line bg-card p-4">
         <input type="hidden" name="station_id" value={picked.id} />
-        <p className="text-sm text-muted">Saving</p>
+        <p className="text-sm text-muted">Following</p>
         <p className="mb-4 font-medium">{picked.name}</p>
 
         <label className="mb-1 block text-sm font-medium" htmlFor="nickname">
@@ -97,7 +97,7 @@ export function StationSearch() {
             disabled={saving}
             className="min-h-11 flex-1 rounded-lg bg-accent px-4 font-medium text-background disabled:opacity-60"
           >
-            {saving ? "Saving…" : "Save station"}
+            {saving ? "Following…" : "Follow station"}
           </button>
           <button
             type="button"

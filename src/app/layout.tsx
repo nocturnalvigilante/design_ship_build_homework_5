@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DockCheck",
-  description: "Will there be a Divvy bike, or a free dock, at your station when you leave?",
+  title: "DockCheck Live",
+  description: "Your Divvy stations' bikes and docks, updating live.",
 };
 
 export default function RootLayout({

@@ -5,12 +5,12 @@ import { revalidatePath } from "next/cache";
 import { getStations } from "@/lib/gbfs";
 import { createSupabaseClient } from "@/lib/supabase";
 
-export type SaveState = { error?: string; savedAt?: number };
+export type FollowState = { error?: string; savedAt?: number };
 
 // Every action starts with auth.protect(), and every query goes through the
 // user's own Supabase client, so RLS limits it to their rows.
 
-export async function saveStation(_prev: SaveState, formData: FormData): Promise<SaveState> {
+export async function followStation(_prev: FollowState, formData: FormData): Promise<FollowState> {
   await auth.protect();
 
   const stationId = String(formData.get("station_id") ?? "");
@@ -26,45 +26,17 @@ export async function saveStation(_prev: SaveState, formData: FormData): Promise
   }
 
   const supabase = createSupabaseClient();
-  const { error } = await supabase
-    .from("saved_stations")
-    .insert({ station_id: stationId, nickname, need });
-  if (error?.code === "23505") return { error: "You've already saved this station." };
-  if (error) return { error: "Couldn't save it. Try again." };
+  const { error } = await supabase.from("follows").insert({ station_id: stationId, nickname, need });
+  if (error?.code === "23505") return { error: "You already follow this station." };
+  if (error) return { error: "Couldn't follow it. Try again." };
 
   revalidatePath("/");
   return { savedAt: Date.now() };
 }
 
-export async function deleteStation(formData: FormData) {
+export async function unfollowStation(formData: FormData) {
   await auth.protect();
   const supabase = createSupabaseClient();
-  await supabase.from("saved_stations").delete().eq("id", String(formData.get("id")));
-  revalidatePath("/");
-}
-
-export async function addDeparture(formData: FormData) {
-  await auth.protect();
-
-  const weekdays = formData
-    .getAll("weekdays")
-    .map(Number)
-    .filter((d) => Number.isInteger(d) && d >= 0 && d <= 6);
-  const leaveAt = String(formData.get("leave_at") ?? "");
-  if (weekdays.length === 0 || !/^\d{2}:\d{2}$/.test(leaveAt)) return;
-
-  const supabase = createSupabaseClient();
-  await supabase.from("departures").insert({
-    saved_station_id: String(formData.get("saved_station_id")),
-    weekdays,
-    leave_at: leaveAt,
-  });
-  revalidatePath("/");
-}
-
-export async function deleteDeparture(formData: FormData) {
-  await auth.protect();
-  const supabase = createSupabaseClient();
-  await supabase.from("departures").delete().eq("id", String(formData.get("id")));
+  await supabase.from("follows").delete().eq("id", String(formData.get("id")));
   revalidatePath("/");
 }

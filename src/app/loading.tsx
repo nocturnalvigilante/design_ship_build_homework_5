@@ -1,4 +1,4 @@
-// Shown while the page fetches your stations and Divvy's live counts.
+// Shown while the page fetches the stations you follow and their counts.
 export default function Loading() {
   return (
     <div className="mx-auto min-h-dvh w-full max-w-lg px-4 pt-4 pb-16" aria-busy="true" aria-label="Loading your stations">

@@ -1,7 +1,9 @@
 import "server-only";
 
-// Divvy GBFS feeds. Fetched on our server and cached for 60 s (the feed's ttl),
-// so one fetch serves every user instead of each phone downloading ~2 MB.
+// Divvy GBFS station names, for search and labels. Live counts come from
+// Supabase, written by the worker. Fetched on our server and cached for 60 s
+// (the feed's ttl), so one fetch serves every user instead of each phone
+// downloading ~2 MB.
 const BASE = "https://gbfs.lyft.com/gbfs/1.1/chi/en";
 const TTL_S = 60;
 const TIMEOUT_MS = 8000;
@@ -12,16 +14,6 @@ export type Station = {
   id: string;
   name: string;
   capacity: number;
-};
-
-export type StationStatus = {
-  id: string;
-  bikes: number; // all rentable bikes, e-bikes included
-  ebikes: number;
-  docks: number;
-  isRenting: boolean;
-  isReturning: boolean;
-  lastReported: number; // unix seconds
 };
 
 export type FeedResult<T> =
@@ -60,40 +52,4 @@ export async function getStations(): Promise<FeedResult<Station[]>> {
     ...feed,
     data: feed.data.map((s) => ({ id: s.station_id, name: s.name, capacity: s.capacity })),
   };
-}
-
-type RawStatus = {
-  station_id: string;
-  num_bikes_available: number;
-  num_ebikes_available: number;
-  num_docks_available: number;
-  is_renting: number;
-  is_returning: number;
-  last_reported: number;
-};
-
-// Live status for the given station ids. A station GBFS no longer lists is
-// simply missing from the feed, so it comes back as null ("nothing found").
-export async function getStatuses(
-  ids: string[],
-): Promise<FeedResult<Record<string, StationStatus | null>>> {
-  const feed = await fetchFeed<RawStatus>("station_status");
-  if (!feed.ok) return feed;
-  const byId = new Map(feed.data.map((s) => [s.station_id, s]));
-  const data: Record<string, StationStatus | null> = {};
-  for (const id of ids) {
-    const s = byId.get(id);
-    data[id] = s
-      ? {
-          id,
-          bikes: s.num_bikes_available,
-          ebikes: s.num_ebikes_available,
-          docks: s.num_docks_available,
-          isRenting: s.is_renting === 1,
-          isReturning: s.is_returning === 1,
-          lastReported: s.last_reported,
-        }
-      : null;
-  }
-  return { ...feed, data };
 }
