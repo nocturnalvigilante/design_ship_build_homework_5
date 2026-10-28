@@ -1,8 +1,8 @@
--- Step 7 of the brief: break row-level security ON PURPOSE, watch the
--- Playwright test fail, then run fix-rls.sql and watch it pass.
+-- Break row-level security ON PURPOSE, watch e2e/isolation.spec.ts fail,
+-- then run fix-rls.sql and watch it pass.
 --
 -- Run this in Supabase → SQL Editor. Afterwards any signed-in user can see
--- every saved station, not just their own. Signed-out visitors still get nothing.
-drop policy "Users see their own saved stations" on public.saved_stations;
-create policy "BROKEN: everyone sees all saved stations" on public.saved_stations
+-- every follow, not just their own. Signed-out visitors still get nothing.
+drop policy "Users see their own follows" on public.follows;
+create policy "BROKEN: everyone sees all follows" on public.follows
   for select to authenticated using (true);

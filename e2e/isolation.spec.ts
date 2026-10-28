@@ -2,8 +2,8 @@ import { clerk } from "@clerk/testing/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { USER_A, USER_B } from "./users";
 
-// Two users sign in, each saves a station, and neither can see the other's.
-// If row-level security on saved_stations is broken, user B sees user A's
+// Two users sign in, each follows a station, and neither can see the other's.
+// If row-level security on follows is broken, user B sees user A's
 // station (and vice versa) and this test fails.
 
 const run = Date.now().toString(36);
@@ -15,40 +15,40 @@ async function signIn(page: Page, email: string) {
   await page.goto("/sign-in");
   await clerk.signIn({ page, emailAddress: email });
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "DockCheck" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "DockCheck Live" })).toBeVisible();
 }
 
-// Remove this user's test stations left over from earlier runs. Only cards
+// Unfollow this user's test stations left over from earlier runs. Only cards
 // whose nickname starts with the user's own prefix are touched.
 async function removeLeftovers(page: Page, prefix: string) {
   const cards = page.getByRole("listitem").filter({ hasText: new RegExp(`^${prefix} `) });
   for (let n = await cards.count(); n > 0; n--) {
-    await cards.first().getByRole("button", { name: "Remove", exact: true }).click();
+    await cards.first().getByRole("button", { name: "Unfollow", exact: true }).click();
     await expect(cards).toHaveCount(n - 1);
   }
 }
 
-async function saveStation(page: Page, search: string, name: string) {
-  const add = page.getByRole("region", { name: "Add a station" });
+async function followStation(page: Page, search: string, name: string) {
+  const add = page.getByRole("region", { name: "Follow a station" });
   await add.getByLabel("Find a Divvy station").fill(search);
   await add.getByRole("button").filter({ hasText: search }).first().click();
   await add.getByLabel("What do you call it?").fill(name);
-  await add.getByRole("button", { name: "Save station" }).click();
-  // Saving checks the station against Divvy and writes to Supabase; give it time.
+  await add.getByRole("button", { name: "Follow station" }).click();
+  // Following checks the station against Divvy and writes to Supabase; give it time.
   await expect(page.getByText(name, { exact: true })).toBeVisible({ timeout: 30_000 });
 }
 
-test("two users can't see each other's saved stations", async ({ browser }) => {
+test("two users can't see each other's followed stations", async ({ browser }) => {
   const a = await (await browser.newContext()).newPage();
   const b = await (await browser.newContext()).newPage();
 
   await signIn(a, A.email);
   await removeLeftovers(a, A.prefix);
-  await saveStation(a, A.search, nickname(A));
+  await followStation(a, A.search, nickname(A));
 
   await signIn(b, B.email);
   await removeLeftovers(b, B.prefix);
-  await saveStation(b, B.search, nickname(B));
+  await followStation(b, B.search, nickname(B));
 
   await a.reload();
   await b.reload();
