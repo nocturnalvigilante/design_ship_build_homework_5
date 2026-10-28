@@ -1,0 +1,13 @@
+Worker run locally on fe02, 2026-10-28 (03:44 CDT), against dockcheck-live.
+Migration 20261028065844_live_tables.sql applied first in the Supabase SQL editor.
+
+First start (empty table):
+worker starting: polling Divvy every 30 s
+run ok changed=2076 feed=2026-10-28T08:44:08.000Z took=1454ms   <- table was empty: every station inserted
+run ok changed=6 feed=2026-10-28T08:45:09.000Z took=274ms       <- new Divvy snapshot: 6 stations changed
+run ok changed=0 feed=2026-10-28T08:45:09.000Z took=34ms        <- same snapshot as last run: nothing written
+
+Restart (snapshot loaded from station_status):
+worker starting: polling Divvy every 30 s
+run ok changed=2 feed=2026-10-28T08:46:08.000Z took=749ms       <- only 2 rows, not 2,076: snapshot reload works
+run ok changed=0 feed=2026-10-28T08:46:08.000Z took=44ms
