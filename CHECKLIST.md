@@ -18,7 +18,7 @@ Every item is taken from the brief. An item is ticked only once it has been **ve
 
 | # | Step | Ask-your-agent done? | Status |
 |---|---|---|---|
-| B1 | **Choose a live source** that changes on its own while people watch (extend A4 or start new). The agent **calls it twice, a few minutes apart, and shows what changed** | ☐ "Explain this response: what each field means, how often it changes, and which fields my app needs." | ☐ |
+| B1 | **Choose a live source** that changes on its own while people watch (extend A4 or start new). The agent **calls it twice, a few minutes apart, and shows what changed** | ☑ "Explain this response…" (docs/learning.md §1) | ☑ 2026-10-28: extend DockCheck with Divvy GBFS; called twice 3 min apart: 30 of 2,076 stations changed counts, 1,116 only re-checked in (`docs/evidence/source-called-twice.txt`) |
 | B2 | **Give the agent access:** Supabase MCP scoped to the project (tables, Realtime, database logs); **Railway CLI** installed + `railway login` (agent deploys the worker and reads `railway logs`); **Clerk CLI** `clerk`; Vercel deploys on push to GitHub | ☐ "List the MCP servers and CLIs you can use in this project, and what you'd use each one for. Then check that each one works." | ☐ |
 | B3 | **Plan the data flow** source → worker → database → page; Claude draws it as a high-level chart **before any code is written** | ☐ "Walk me through the chart: what each part sends to the next, and what would break if one part changed it." | ☐ |
 | B4 | **Build the worker:** small Node.js program in **its own folder**; runs all the time on Railway; polls every few seconds (or slower if the source is slow or rate-limited); saves **only changed rows with an upsert**; writes with the Supabase **secret key, kept in Railway variables, never in code**; adds a row to a **runs table** each run (when, worked?, rows changed); **run locally first and watch rows change**; then deploy to Railway **from the GitHub repo**; agent sets up a **test that runs the worker on a saved copy of the source's response** and checks what it saves, and **you understand what it checks** | ☐ "Show me the worker's logs from its last three runs, and explain each line." | ☐ |
@@ -29,7 +29,7 @@ Every item is taken from the brief. An item is ticked only once it has been **ve
 
 | # | Requirement | Status |
 |---|---|---|
-| C1 | **Live source:** data from one source that changes on its own | ☐ |
+| C1 | **Live source:** data from one source that changes on its own | ☑ Divvy station_status, new snapshot every ~60 s, 30 stations changed in 3 min at midnight |
 | C2 | **Data flow:** a high-level chart of how data moves, **made before the code** (commit order proves it) | ☐ |
 | C3 | **Worker:** runs all the time on Railway, saves **only what changed**, records each run in a table | ☐ |
 | C4 | **Live page:** updates without a refresh, shows freshness, has **loading, stale and down** states | ☐ |
