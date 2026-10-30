@@ -49,7 +49,7 @@ Every item is taken from the brief. An item is ticked only once it has been **ve
 | D4 | Supabase for the worker: an **Edge Function** that **Supabase Cron** runs every few seconds | ☑ `poll-divvy` Edge Function + Supabase Cron every 30 s (`docs/evidence/edge-worker-runs.md`) |
 | D5 | Edge Functions run on Deno: **`supabase` in `tsconfig.json` `exclude`** (or the Next.js build checks the worker and fails) | ☑ `"exclude": ["node_modules", "supabase"]`, build passes |
 | D6 | Code in our own GitHub repo | ☐ |
-| D7 | Page on Vercel's free Hobby plan | ☐ |
+| D7 | Page on Vercel's free Hobby plan | ☑ https://design-ship-build-homework-5.vercel.app (Hobby), env vars set in Vercel; 8/8 Playwright tests pass against it |
 | D8 | Worker **deployed to Supabase** (code in `supabase/functions/`, in the GitHub repo) | ☑ deployed via the Supabase MCP; code in `supabase/functions/poll-divvy/` |
 | D9 | `AGENTS.md` is the context file; any `CLAUDE.md` merged and deleted; **`/context` shows `AGENTS.md` loaded** | ☐ |
 
@@ -78,7 +78,7 @@ Every item is taken from the brief. An item is ticked only once it has been **ve
 
 | # | Item | Status |
 |---|---|---|
-| G1 | Vercel URL: a live link to the app | ☐ |
+| G1 | Vercel URL: a live link to the app | ☑ https://design-ship-build-homework-5.vercel.app (in README) |
 | G2 | GitHub URL: repo with `README.md` and a commit history that shows progress | ☐ |
 
 ## Easy-to-miss items (each one costs marks if skipped)
@@ -101,7 +101,7 @@ Blockers: each one alone makes the submission incomplete.
 
 1. ~~**Nothing is pushed.**~~ **Fixed**: merged and pushed to `main` after a clean `/security-review`. 8+ commits exist only on the local branch `step3-data-flow`. GitHub `main` still ends at step 1. (A5, G2)
 2. ~~**README.md is still A4's.**~~ **Fixed** `d5f90a6`; the Vercel URL is a placeholder until deploy. It links the **A4 Vercel URL** and describes saved times and history. A grader following it lands on the wrong app. (G2)
-3. **No Vercel deployment** for A5, so no URL. (A1, C6, D7, G1)
+3. ~~**No Vercel deployment** for A5, so no URL.~~ **Fixed** 2026-10-30: https://design-ship-build-homework-5.vercel.app, live with Realtime ("Live · checked 16 s ago"). (A1, C6, D7, G1)
 4. ~~**Worker isn't on Railway.**~~ **Superseded 2026-10-29:** the brief moved the worker to a Supabase Edge Function + Cron. Sign-up is blocked; it only runs on fe02 while this session is open. Tell the teaching staff in writing if it's still blocked. (A2, C3, D4, D8, E4)
 5. **No classmate test.** Someone else must sign in, follow a station and watch it change. (A1, B6, C6)
 6. ~~**Stale and down states are coded but no one has seen them.**~~ **Fixed** `8330ae5`: screenshots of both. Stop the worker for over 2 min to see stale; make a run fail to see down. Screenshot both. (A4, B5, C4)
