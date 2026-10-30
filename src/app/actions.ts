@@ -14,16 +14,20 @@ export async function followStation(_prev: FollowState, formData: FormData): Pro
   await auth.protect();
 
   const stationId = String(formData.get("station_id") ?? "");
-  const nickname = String(formData.get("nickname") ?? "").trim();
+  const typed = String(formData.get("nickname") ?? "").trim();
   const need = formData.get("need") === "dock" ? "dock" : "bike";
-  if (!nickname) return { error: "Give it a short name, like Lab or Home." };
-  if (nickname.length > 40) return { error: "Keep the name under 40 characters." };
+  if (typed.length > 40) return { error: "Keep the name under 40 characters." };
 
   // Only accept station ids Divvy actually lists.
   const stations = await getStations();
-  if (stations.ok && !stations.data.some((s) => s.id === stationId)) {
+  const station = stations.ok ? stations.data.find((s) => s.id === stationId) : undefined;
+  if (stations.ok && !station) {
     return { error: "Divvy doesn't list that station any more. Search again." };
   }
+
+  // The nickname is optional: left blank, the station's own name is used.
+  const nickname = typed || station?.name.slice(0, 40);
+  if (!nickname) return { error: "Divvy isn't responding, so give it a short name, like Lab or Home." };
 
   const supabase = createSupabaseClient();
   const { error } = await supabase.from("follows").insert({ station_id: stationId, nickname, need });

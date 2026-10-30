@@ -205,7 +205,9 @@ function StationCard({
       <div className="mb-3 flex items-start justify-between gap-3">
         <div>
           <p className="font-semibold">{follow.nickname}</p>
-          <p className="text-sm text-muted">{follow.name ?? "Station no longer listed"}</p>
+          {follow.name !== follow.nickname && (
+            <p className="text-sm text-muted">{follow.name ?? "Station no longer listed"}</p>
+          )}
         </div>
         <form action={unfollowStation}>
           <input type="hidden" name="id" value={follow.id} />

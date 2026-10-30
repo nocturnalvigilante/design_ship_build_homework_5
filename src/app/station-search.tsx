@@ -58,15 +58,14 @@ export function StationSearch() {
         <p className="mb-4 font-medium">{picked.name}</p>
 
         <label className="mb-1 block text-sm font-medium" htmlFor="nickname">
-          What do you call it?
+          What do you call it? <span className="font-normal text-muted">(optional)</span>
         </label>
         <input
           id="nickname"
           name="nickname"
-          required
           maxLength={40}
           autoFocus
-          placeholder="Lab, Home, Gym…"
+          placeholder={`Lab, Home, Gym… or leave blank for "${picked.name}"`}
           className="mb-4 w-full rounded-lg border border-line bg-background px-3 py-2.5 text-base"
         />
 
