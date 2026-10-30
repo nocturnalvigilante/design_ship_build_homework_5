@@ -18,10 +18,11 @@ async function signIn(page: Page, email: string) {
   await expect(page.getByRole("heading", { name: "DockCheck Live" })).toBeVisible();
 }
 
-// Unfollow this user's test stations left over from earlier runs. Only cards
-// whose nickname starts with the user's own prefix are touched.
-async function removeLeftovers(page: Page, prefix: string) {
-  const cards = page.getByRole("listitem").filter({ hasText: new RegExp(`^${prefix} `) });
+// Unfollow everything this test user follows, left over from earlier runs (the
+// screenshot spec follows stations too). These accounts exist only for tests,
+// and a leftover follow of the same station would make following it fail.
+async function removeLeftovers(page: Page) {
+  const cards = page.getByRole("region", { name: "Stations you follow" }).getByRole("listitem");
   for (let n = await cards.count(); n > 0; n--) {
     await cards.first().getByRole("button", { name: "Unfollow", exact: true }).click();
     await expect(cards).toHaveCount(n - 1);
@@ -43,11 +44,11 @@ test("two users can't see each other's followed stations", async ({ browser }) =
   const b = await (await browser.newContext()).newPage();
 
   await signIn(a, A.email);
-  await removeLeftovers(a, A.prefix);
+  await removeLeftovers(a);
   await followStation(a, A.search, nickname(A));
 
   await signIn(b, B.email);
-  await removeLeftovers(b, B.prefix);
+  await removeLeftovers(b);
   await followStation(b, B.search, nickname(B));
 
   await a.reload();
@@ -61,6 +62,6 @@ test("two users can't see each other's followed stations", async ({ browser }) =
   await expect(a.getByText(nickname(B), { exact: true }), "user A can see user B's station").toHaveCount(0);
 
   // Tidy up so the next run starts clean.
-  await removeLeftovers(a, A.prefix);
-  await removeLeftovers(b, B.prefix);
+  await removeLeftovers(a);
+  await removeLeftovers(b);
 });
