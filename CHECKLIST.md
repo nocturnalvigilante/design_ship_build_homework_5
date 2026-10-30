@@ -51,7 +51,7 @@ Every item is taken from the brief. An item is ticked only once it has been **ve
 | D6 | Code in our own GitHub repo | ☐ |
 | D7 | Page on Vercel's free Hobby plan | ☑ https://design-ship-build-homework-5.vercel.app (Hobby), env vars set in Vercel; every Playwright test passes against it (the opt-in screenshot spec skipped) |
 | D8 | Worker **deployed to Supabase** (code in `supabase/functions/`, in the GitHub repo) | ☑ deployed via the Supabase MCP; code in `supabase/functions/poll-divvy/` |
-| D9 | `AGENTS.md` is the context file; any `CLAUDE.md` merged and deleted; **`/context` shows `AGENTS.md` loaded** | ☐ |
+| D9 | `AGENTS.md` is the context file; any `CLAUDE.md` merged and deleted; **`/context` shows `AGENTS.md` loaded** | ☑ 2026-10-30: `/context` lists Memory files: `~/projects/dbs-a5/AGENTS.md` (1.5k tokens); no `CLAUDE.md` in the repo. Recorded in `docs/evidence/context-check.md` |
 
 ## E. Free tiers and usage limits
 
@@ -117,7 +117,7 @@ Will lose marks:
 13. **Ask-your-agent prompts aren't recorded:** ~~B3 walkthrough~~ (saved in `docs/learning.md` §3), B4 "last three runs' logs" (Edge Function logs), B5 trace, B6 quiz. Save the answers in `docs/learning.md`.
 14. **Free-tier limits and spending alerts aren't set** for Vercel, Supabase or Clerk, and the E7 prompt hasn't been run. (E1–E3, E7)
 15. ~~**The A4 migrations are still in `supabase/migrations/`.**~~ **Fixed** `1480ba3` (moved to `docs/a4-migrations/`). `supabase db push` would create A4's tables in this project. Move them out. The A5 migration was applied by hand in the SQL editor, so Supabase's migration history doesn't list it.
-16. **`/context` hasn't been checked** to show `AGENTS.md` loaded. (D9)
+16. ~~**`/context` hasn't been checked** to show `AGENTS.md` loaded. (D9)~~ Fixed: `docs/evidence/context-check.md`.
 17. **Design-process write-up for live states** (loading, fresh, stale, down, the highlight on a change) isn't in the README yet. (C7)
 18. **Not practised:** F1–F4 out loud.
 
