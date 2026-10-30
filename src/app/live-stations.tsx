@@ -116,7 +116,8 @@ export function LiveStations({
   return (
     <>
       <FreshnessLine state={state} latestRun={latestRun} lastOkAt={lastOkAt} now={now} />
-      <ul className="space-y-4">
+      {/* One column on phones; side by side on wider screens. */}
+      <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {follows.map((f) => (
           <StationCard
             key={f.id}

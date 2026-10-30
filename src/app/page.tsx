@@ -4,10 +4,14 @@ import { getStations } from "@/lib/gbfs";
 import type { Run } from "@/lib/freshness";
 import { createSupabaseClient } from "@/lib/supabase";
 import { LiveStations, type Follow, type Status } from "./live-stations";
+import { Landing } from "./landing";
 import { StationSearch } from "./station-search";
 
 export default async function Home() {
-  // Signed-out visitors are sent to /sign-in before anything renders.
+  // Signed-out visitors see what the app is (no data) instead of being sent
+  // straight to /sign-in. Everything below needs a signed-in user.
+  const { userId } = await auth();
+  if (!userId) return <Landing />;
   await auth.protect();
 
   // The first render comes from Supabase (written by the worker); after that,
@@ -41,7 +45,7 @@ export default async function Home() {
     : { data: [] as Status[] };
 
   return (
-    <div className="mx-auto min-h-dvh w-full max-w-lg px-4 pt-4 pb-16">
+    <div className="mx-auto min-h-dvh w-full max-w-lg px-4 pt-4 pb-16 md:max-w-5xl">
       <header className="mb-6 flex items-center justify-between">
         <h1 className="text-lg font-semibold tracking-tight">DockCheck Live</h1>
         <UserButton />
@@ -62,8 +66,11 @@ export default async function Home() {
           <div className="rounded-xl border border-dashed border-line p-5 text-center">
             <p className="font-medium">You&apos;re not following any stations yet</p>
             <p className="mt-1 text-sm text-muted">
-              Search below for the station you leave from, like Ellis Ave &amp; 58th St, and follow it as &ldquo;Lab&rdquo;.
-              Its bikes and docks will update here on their own.
+              This page shows live bikes and free docks at the Divvy stations you use, so you know before you walk over.
+            </p>
+            <p className="mt-2 text-sm text-muted">
+              Start below: type a street, like Ellis, pick the station you leave from, and follow it. Its counts will
+              update here on their own while the page is open.
             </p>
           </div>
         )}
@@ -78,7 +85,7 @@ export default async function Home() {
         )}
       </section>
 
-      <section aria-label="Follow a station">
+      <section aria-label="Follow a station" className="max-w-lg">
         <StationSearch />
       </section>
     </div>
