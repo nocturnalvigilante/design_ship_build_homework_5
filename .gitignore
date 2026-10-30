@@ -45,3 +45,6 @@ next-env.d.ts
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Large screen recordings stay local (transcripts are committed instead)
+docs/evidence/*.mp4
