@@ -15,13 +15,16 @@ const PAGE_SIZE = 1000; // Supabase returns at most 1,000 rows per request
 // SUPABASE_SECRET_KEYS is a JSON object of the project's secret keys, by name.
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SECRET_KEYS: Record<string, string> = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}");
-const SECRET_KEY = SECRET_KEYS["default"];
+
+// The secret key cron sent, once checked against SECRET_KEYS. The function writes
+// with that same key, so rotating it is one change in Vault, whatever it's named.
+let secretKey = "";
 
 // Calls Supabase's REST API with the secret key, which bypasses RLS.
 async function rest(path: string, options: RequestInit = {}) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     ...options,
-    headers: { apikey: SECRET_KEY, "Content-Type": "application/json", ...options.headers },
+    headers: { apikey: secretKey, "Content-Type": "application/json", ...options.headers },
     signal: AbortSignal.timeout(TIMEOUT_MS),
   });
   if (!res.ok) {
@@ -107,6 +110,7 @@ Deno.serve(async (req) => {
   if (req.method !== "POST" || !apikey || !Object.values(SECRET_KEYS).includes(apikey)) {
     return new Response("unauthorized", { status: 401 });
   }
+  secretKey = apikey;
   const run = await runOnce();
   return Response.json(run, { status: run.ok ? 200 : 502 });
 });
