@@ -8,7 +8,7 @@ Every item is taken from the brief. An item is ticked only once it has been **ve
 
 | # | Requirement | Evidence | Status |
 |---|---|---|---|
-| A1 | A live Vercel URL where a classmate can sign in and **watch the data update without refreshing** | | ☐ |
+| A1 | A live Vercel URL where a classmate can sign in and **watch the data update without refreshing** | Classmate signed up on the live site, followed 2 stations, page showed "Live · checked 22 s ago": `docs/evidence/classmate-test.md` | ☑ |
 | A2 | A worker that runs every few seconds on Supabase (Edge Function + Cron), **recording each run in a table** | Cron runs every 30 s, each run a `runs` row: `docs/evidence/edge-worker-runs.md` | ☑ |
 | A3 | A high-level chart of the data flow | `docs/data-flow.md`, commit `f3c5018` | ☑ |
 | A4 | Freshness shown on the page, with a **designed stale state** | Fresh, stale and down captured from the real page: `docs/evidence/live-states.md` | ☑ |
@@ -25,7 +25,7 @@ Every item is taken from the brief. An item is ticked only once it has been **ve
 | B3 | **Plan the data flow** source → worker → database → page; Claude draws it as a high-level chart **before any code is written** | ☐ "Walk me through the chart: what each part sends to the next, and what would break if one part changed it." | ☐ |
 | B4 | **Build the worker:** a **Supabase Edge Function** (TypeScript, Deno) in **`supabase/functions/`**; **Supabase Cron** calls it every few seconds (or less often if the source is slow); fetches the source and saves **only changed rows with an upsert**; writes with the Supabase **secret key, which Supabase gives the function on its servers, never in code**; adds a row to a **runs table** each call (when, worked?, rows changed); **agent deploys it and calls it once, and you watch rows change**; then schedules it with Cron; agent sets up a **test that runs the worker on a saved copy of the source's response** and checks what it saves, and **you understand what it checks** | ☐ "Show me the worker's logs from its last three runs, and explain each line." | ☐ |
 | B5 | **Make the page live:** updates without refresh via **Supabase Realtime**; all three of: **table added to Realtime publication**, **read access granted**, **RLS policy that lets the person read it**; each person **chooses what they follow** and sees only their own choices; shows **how fresh** the data is; designed states: **loading, fresh, stale** (older than a few missed runs), **down** (worker's last run failed) | ☐ "Trace one update for me, from the source to my screen, and name every part it passes through." | ☐ |
-| B6 | **Deploy and test:** page on Vercel with env vars set there; **check the worker is running**; **a classmate signs in, chooses what they follow, and watches it update** | ☐ "Quiz me on how my system works, one question at a time, and tell me what I got wrong. Start with the questions in Be Ready to Explain." | ☐ |
+| B6 | **Deploy and test:** page on Vercel with env vars set there; **check the worker is running**; **a classmate signs in, chooses what they follow, and watches it update** | ☐ "Quiz me on how my system works, one question at a time, and tell me what I got wrong. Start with the questions in Be Ready to Explain." || ☑ deployed, worker running, classmate test done (quiz prompt still open) |
 
 ## C. Requirements
 
@@ -36,7 +36,7 @@ Every item is taken from the brief. An item is ticked only once it has been **ve
 | C3 | **Worker:** an Edge Function that Supabase Cron runs every few seconds; saves **only what changed**, records each run in a table | ☑ runs 1051–1052 by cron: 78 then 0 rows (`docs/evidence/edge-worker-runs.md`) |
 | C4 | **Live page:** updates without a refresh, shows freshness, has **loading, stale and down** states | ☑ locally: live tick on video, stale and down screenshots (`docs/evidence/live-states.md`); still to repeat on Vercel |
 | C5 | **Personal:** each person chooses what they follow, with **RLS on their choices** | ☑ `e2e/isolation.spec.ts` passes: two users, neither sees the other's follows |
-| C6 | **Deployed:** page on Vercel and the worker running; a classmate can sign in and watch it update | ☐ |
+| C6 | **Deployed:** page on Vercel and the worker running; a classmate can sign in and watch it update | ☑ classmate test: `docs/evidence/classmate-test.md` |
 | C7 | **UI/UX:** design process, principles and flows from earlier weeks still applied; live data has clear states | ☐ |
 
 ## D. Tech stack
@@ -103,7 +103,7 @@ Blockers: each one alone makes the submission incomplete.
 2. ~~**README.md is still A4's.**~~ **Fixed** `d5f90a6`; the Vercel URL is a placeholder until deploy. It links the **A4 Vercel URL** and describes saved times and history. A grader following it lands on the wrong app. (G2)
 3. ~~**No Vercel deployment** for A5, so no URL.~~ **Fixed** 2026-10-30: https://design-ship-build-homework-5.vercel.app, live with Realtime ("Live · checked 16 s ago"). (A1, C6, D7, G1)
 4. ~~**Worker isn't on Railway.**~~ **Superseded 2026-10-29:** the brief moved the worker to a Supabase Edge Function + Cron. Sign-up is blocked; it only runs on fe02 while this session is open. Tell the teaching staff in writing if it's still blocked. (A2, C3, D4, D8, E4)
-5. **No classmate test.** Someone else must sign in, follow a station and watch it change. (A1, B6, C6)
+5. ~~**No classmate test.**~~ **Fixed** 2026-10-30: `docs/evidence/classmate-test.md`. Someone else must sign in, follow a station and watch it change. (A1, B6, C6)
 6. ~~**Stale and down states are coded but no one has seen them.**~~ **Fixed** `8330ae5`: screenshots of both. Stop the worker for over 2 min to see stale; make a run fail to see down. Screenshot both. (A4, B5, C4)
 7. ~~**A live tick hasn't been seen yet.**~~ **Fixed** `8330ae5`: `live-tick.webm`. Repeat on Vercel for A1. "Live · checked" works, but no count has changed on screen. Record a few seconds of one changing. (A1, C4)
 
