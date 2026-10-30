@@ -49,7 +49,7 @@ Every item is taken from the brief. An item is ticked only once it has been **ve
 | D4 | Supabase for the worker: an **Edge Function** that **Supabase Cron** runs every few seconds | ☑ `poll-divvy` Edge Function + Supabase Cron every 30 s (`docs/evidence/edge-worker-runs.md`) |
 | D5 | Edge Functions run on Deno: **`supabase` in `tsconfig.json` `exclude`** (or the Next.js build checks the worker and fails) | ☑ `"exclude": ["node_modules", "supabase"]`, build passes |
 | D6 | Code in our own GitHub repo | ☐ |
-| D7 | Page on Vercel's free Hobby plan | ☑ https://design-ship-build-homework-5.vercel.app (Hobby), env vars set in Vercel; 8/8 Playwright tests pass against it |
+| D7 | Page on Vercel's free Hobby plan | ☑ https://design-ship-build-homework-5.vercel.app (Hobby), env vars set in Vercel; every Playwright test passes against it (the opt-in screenshot spec skipped) |
 | D8 | Worker **deployed to Supabase** (code in `supabase/functions/`, in the GitHub repo) | ☑ deployed via the Supabase MCP; code in `supabase/functions/poll-divvy/` |
 | D9 | `AGENTS.md` is the context file; any `CLAUDE.md` merged and deleted; **`/context` shows `AGENTS.md` loaded** | ☐ |
 
