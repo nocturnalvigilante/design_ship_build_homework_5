@@ -9,7 +9,7 @@ Every item is taken from the brief. An item is ticked only once it has been **ve
 | # | Requirement | Evidence | Status |
 |---|---|---|---|
 | A1 | A live Vercel URL where a classmate can sign in and **watch the data update without refreshing** | | ☐ |
-| A2 | A worker that runs every few seconds on Supabase (Edge Function + Cron), **recording each run in a table** | | ☐ |
+| A2 | A worker that runs every few seconds on Supabase (Edge Function + Cron), **recording each run in a table** | Cron runs every 30 s, each run a `runs` row: `docs/evidence/edge-worker-runs.md` | ☑ |
 | A3 | A high-level chart of the data flow | `docs/data-flow.md`, commit `f3c5018` | ☑ |
 | A4 | Freshness shown on the page, with a **designed stale state** | Fresh, stale and down captured from the real page: `docs/evidence/live-states.md` | ☑ |
 | A5 | A GitHub repo with commits that show progress | `main` pushed 2026-10-28: chart → migration → worker → tests → page → evidence, one change per commit | ☑ |
@@ -33,7 +33,7 @@ Every item is taken from the brief. An item is ticked only once it has been **ve
 |---|---|---|
 | C1 | **Live source:** data from one source that changes on its own | ☑ Divvy station_status, new snapshot every ~60 s, 30 stations changed in 3 min at midnight |
 | C2 | **Data flow:** a high-level chart of how data moves, **made before the code** (commit order proves it) | ☑ `f3c5018` chart, then `71254be` migration, `f519a09` worker, `8baa758` Realtime |
-| C3 | **Worker:** an Edge Function that Supabase Cron runs every few seconds; saves **only what changed**, records each run in a table | ☐ |
+| C3 | **Worker:** an Edge Function that Supabase Cron runs every few seconds; saves **only what changed**, records each run in a table | ☑ runs 1051–1052 by cron: 78 then 0 rows (`docs/evidence/edge-worker-runs.md`) |
 | C4 | **Live page:** updates without a refresh, shows freshness, has **loading, stale and down** states | ☑ locally: live tick on video, stale and down screenshots (`docs/evidence/live-states.md`); still to repeat on Vercel |
 | C5 | **Personal:** each person chooses what they follow, with **RLS on their choices** | ☑ `e2e/isolation.spec.ts` passes: two users, neither sees the other's follows |
 | C6 | **Deployed:** page on Vercel and the worker running; a classmate can sign in and watch it update | ☐ |
@@ -46,11 +46,11 @@ Every item is taken from the brief. An item is ticked only once it has been **ve
 | D1 | Next.js and Tailwind CSS | ☑ `npm run build` passes |
 | D2 | Clerk for sign-in | ☑ signed in locally with app DockCheck Live (dev keys) |
 | D3 | Supabase for the database **and Realtime** | ☑ page showed "Live · checked 13 s ago" from a Realtime runs insert |
-| D4 | Supabase for the worker: an **Edge Function** that **Supabase Cron** runs every few seconds | ☐ |
-| D5 | Edge Functions run on Deno: **`supabase` in `tsconfig.json` `exclude`** (or the Next.js build checks the worker and fails) | ☐ |
+| D4 | Supabase for the worker: an **Edge Function** that **Supabase Cron** runs every few seconds | ☑ `poll-divvy` Edge Function + Supabase Cron every 30 s (`docs/evidence/edge-worker-runs.md`) |
+| D5 | Edge Functions run on Deno: **`supabase` in `tsconfig.json` `exclude`** (or the Next.js build checks the worker and fails) | ☑ `"exclude": ["node_modules", "supabase"]`, build passes |
 | D6 | Code in our own GitHub repo | ☐ |
 | D7 | Page on Vercel's free Hobby plan | ☐ |
-| D8 | Worker **deployed to Supabase** (code in `supabase/functions/`, in the GitHub repo) | ☐ |
+| D8 | Worker **deployed to Supabase** (code in `supabase/functions/`, in the GitHub repo) | ☑ deployed via the Supabase MCP; code in `supabase/functions/poll-divvy/` |
 | D9 | `AGENTS.md` is the context file; any `CLAUDE.md` merged and deleted; **`/context` shows `AGENTS.md` loaded** | ☐ |
 
 ## E. Free tiers and usage limits
