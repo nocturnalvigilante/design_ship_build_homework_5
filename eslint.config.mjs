@@ -18,6 +18,7 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      "supabase/**", // Edge Functions are Deno code, linted and checked by Deno
     ],
   },
 ];

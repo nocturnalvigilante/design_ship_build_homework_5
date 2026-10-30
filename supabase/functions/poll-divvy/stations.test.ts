@@ -1,18 +1,19 @@
 // Runs the worker's parsing and "what changed" logic on the two saved Divvy
 // responses (called 3 min apart on 2026-10-28), not the live feed.
-// Run with: cd worker && npm test
+// Run with: npm run test:worker (Node strips the types; the function itself runs on Deno)
 
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
-import { changedRows, parseFeed } from "./stations.js";
+import { changedRows, parseFeed } from "./stations.ts";
+import type { Row } from "./stations.ts";
 
-const load = (name) =>
-  JSON.parse(readFileSync(join(import.meta.dirname, "../docs/evidence", name), "utf8"));
+const load = (name: string) =>
+  JSON.parse(readFileSync(join(import.meta.dirname, "../../../docs/evidence", name), "utf8"));
 const call1 = parseFeed(load("status-call-1.json"));
 const call2 = parseFeed(load("status-call-2.json"));
-const snapshotOf = (rows) => new Map(rows.map((r) => [r.station_id, r]));
+const snapshotOf = (rows: Row[]) => new Map(rows.map((r) => [r.station_id, r]));
 
 test("parses every station into a station_status row", () => {
   assert.equal(call1.rows.length, 2076);
@@ -40,7 +41,7 @@ test("saves only the 28 stations whose counts changed between the two calls", ()
 test("a new last_reported alone is not a change", () => {
   // 1,116 stations checked in between the calls; most kept the same counts.
   const movedOnly = call2.rows.filter((r) => {
-    const old = snapshotOf(call1.rows).get(r.station_id);
+    const old = snapshotOf(call1.rows).get(r.station_id)!;
     return old.last_reported !== r.last_reported && changedRows([r], new Map([[r.station_id, old]])).length === 0;
   });
   assert.ok(movedOnly.length > 1000);

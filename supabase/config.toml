@@ -1,0 +1,6 @@
+# Only the settings this project relies on. project ref: ecpppyiclszsuyeeccyl
+
+[functions.poll-divvy]
+# The new sb_secret_ keys aren't JWTs, so the platform's JWT check is off and
+# the function checks the caller's apikey against its own secret keys instead.
+verify_jwt = false
