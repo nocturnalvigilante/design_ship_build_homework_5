@@ -8,18 +8,19 @@ Context for any coding agent working in this repo. MPCS 51238 Design, Build, Shi
 
 Main task, as one sentence:
 
-> I follow Ellis & 58th as "Lab" → a worker on Railway polls Divvy and saves only what changed → my open page ticks from 3 bikes to 2 on its own, and tells me how fresh that is.
+> I follow Ellis & 58th as "Lab" → a worker on Supabase polls Divvy and saves only what changed → my open page ticks from 3 bikes to 2 on its own, and tells me how fresh that is.
 
 ## Stack (from the brief)
 
-- Next.js (App Router), Tailwind CSS, **Clerk** (development keys, app "DockCheck Live", not A4's app), **Supabase** for data **and Realtime** (project `dockcheck-live`, ref `ecpppyiclszsuyeeccyl`), **Railway** for the worker.
-- The worker is a small Node.js program in **`worker/`**, listed in `tsconfig.json` `exclude`. Railway's root directory is `worker/`.
+- Next.js (App Router), Tailwind CSS, **Clerk** (development keys, app "DockCheck Live", not A4's app), **Supabase** for data, **Realtime and the worker** (project `dockcheck-live`, ref `ecpppyiclszsuyeeccyl`).
+- **Brief updated 2026-10-29:** the worker is a **Supabase Edge Function** (`supabase/functions/poll-divvy`, TypeScript on Deno) that **Supabase Cron** (pg_cron + pg_net) calls every 30 s. `supabase` is in `tsconfig.json` `exclude`. Railway is no longer used (its sign-ups closed after its October breach).
+- The agent deploys the function and sets its schedule through the Supabase MCP (needs the `functions` feature in `.mcp.json`).
 - Free tiers only. No new npm packages without asking. Work on a branch, and run `/security-review` before merging.
 
 ## Keys
 
-- `.claude/settings.json` denies the agent `Read(./.env)` and `Read(./.env.*)`. **The user creates and edits `.env.local`. The agent never does.** The same goes for Railway and Vercel variables: the user pastes the values.
-- Publishable keys (`NEXT_PUBLIC_…`) may reach the browser. The Clerk secret key stays on the Vercel server. The **Supabase secret key is used only by the worker**, from Railway's variables, never in code or the browser.
+- `.claude/settings.json` denies the agent `Read(./.env)` and `Read(./.env.*)`. **The user creates and edits `.env.local`. The agent never does.** The same goes for Vercel variables and Supabase Vault secrets: the user pastes the values.
+- Publishable keys (`NEXT_PUBLIC_…`) may reach the browser. The Clerk secret key stays on the Vercel server. The **Supabase secret key is used only by the worker**: Supabase gives it to the Edge Function on its servers (`SUPABASE_SECRET_KEYS`), and cron sends a secret key from Vault. Never in code or the browser.
 
 ## Sign-in (Clerk)
 
@@ -39,4 +40,3 @@ Main task, as one sentence:
 - The cluster's `fe01` is a login node. Run installs and builds on `fe02`, with Node 22 from `~/.local/node/bin`.
 - `npm run dev`, `npm run build`, `npm run lint`. End-to-end tests use Playwright.
 - Small commits, one change each, with messages that say what changed and why.
-- Railway sign-ups were disabled on 2026-10-28 (Railway's outage). Build and test the worker locally first; deploy when sign-up works. Don't pay, and tell the teaching staff if it stays blocked.
