@@ -26,3 +26,11 @@ Separately: two secret keys (Supabase secret, Clerk `dockcheck-live-local`) were
 - PostgREST paths are fixed; bodies are type-checked feed values. `runs.error` never contains a key.
 - The cron job reads its key from Vault at call time; no literal secret in the migration.
 - Open: the Vault key `cron_secret_key` was pasted into the agent chat; rotate before submission.
+
+## grader-feedback branch (2026-10-30)
+
+`/security-review` on `main...grader-feedback` (landing page, optional nickname, desktop grid): **no findings.**
+
+- Signed-out `/` returns the static landing page before any Supabase client is created; the signed-in path still starts with `auth.protect()`. Middleware unchanged.
+- `followStation` still starts with `auth.protect()`. A blank nickname falls back to the station name from the server-fetched Divvy feed, cut to 40 characters, inserted through the user's own client (RLS `with check` on `user_id`).
+- No `dangerouslySetInnerHTML`; the station name in the placeholder is plain JSX. Removing `required` is client-side only; the server still checks length.
