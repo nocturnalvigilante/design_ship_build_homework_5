@@ -16,3 +16,13 @@
 Note: `e2e/break-rls.sql` breaks RLS on purpose for the failing-test exercise. Run `e2e/fix-rls.sql` straight after.
 
 Separately: two secret keys (Supabase secret, Clerk `dockcheck-live-local`) were pasted into the agent chat on 2026-10-28. They are not in the repo, but they must be deleted and replaced before deploying.
+
+## edge-worker branch (2026-10-30)
+
+`/security-review` on `main...edge-worker` (Edge Function worker + cron): **no findings.**
+
+- No key committed (searched history for `sb_secret_`, `sk_test_`, `sk_live_`, `eyJhbGci`).
+- `poll-divvy` has `verify_jwt = false` but runs only for a POST whose `apikey` is one of the project's secret keys; no key or a wrong key gets 401 (tested live).
+- PostgREST paths are fixed; bodies are type-checked feed values. `runs.error` never contains a key.
+- The cron job reads its key from Vault at call time; no literal secret in the migration.
+- Open: the Vault key `cron_secret_key` was pasted into the agent chat; rotate before submission.
