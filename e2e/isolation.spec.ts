@@ -29,6 +29,10 @@ async function removeLeftovers(page: Page) {
   }
 }
 
+function cardsOf(page: Page) {
+  return page.getByRole("region", { name: "Stations you follow" });
+}
+
 async function followStation(page: Page, search: string, name: string) {
   const add = page.getByRole("region", { name: "Follow a station" });
   await add.getByLabel("Find a Divvy station").fill(search);
@@ -36,7 +40,8 @@ async function followStation(page: Page, search: string, name: string) {
   await add.getByLabel("What do you call it?").fill(name);
   await add.getByRole("button", { name: "Follow station" }).click();
   // Following checks the station against Divvy and writes to Supabase; give it time.
-  await expect(page.getByText(name, { exact: true })).toBeVisible({ timeout: 30_000 });
+  // The nickname also labels the station's pin on the map, so look at the cards.
+  await expect(cardsOf(page).getByText(name, { exact: true })).toBeVisible({ timeout: 30_000 });
 }
 
 test("two users can't see each other's followed stations", async ({ browser }) => {
@@ -55,9 +60,9 @@ test("two users can't see each other's followed stations", async ({ browser }) =
   await b.reload();
 
   // Each sees their own station…
-  await expect(a.getByText(nickname(A), { exact: true })).toBeVisible();
-  await expect(b.getByText(nickname(B), { exact: true })).toBeVisible();
-  // …and not the other person's.
+  await expect(cardsOf(a).getByText(nickname(A), { exact: true })).toBeVisible();
+  await expect(cardsOf(b).getByText(nickname(B), { exact: true })).toBeVisible();
+  // …and not the other person's, anywhere on the page (cards or map).
   await expect(b.getByText(nickname(A), { exact: true }), "user B can see user A's station").toHaveCount(0);
   await expect(a.getByText(nickname(B), { exact: true }), "user A can see user B's station").toHaveCount(0);
 
