@@ -47,7 +47,10 @@ export default async function Home() {
   return (
     <div className="mx-auto min-h-dvh w-full max-w-lg px-4 pt-4 pb-16 md:max-w-5xl">
       <header className="mb-6 flex items-center justify-between">
-        <h1 className="text-lg font-semibold tracking-tight">DockCheck Live</h1>
+        <div>
+          <h1 className="text-lg font-semibold tracking-tight">DockCheck Live</h1>
+          <p className="text-sm text-muted">Live Divvy bikes &amp; docks</p>
+        </div>
         <UserButton />
       </header>
 
