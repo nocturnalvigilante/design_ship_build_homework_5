@@ -9,6 +9,10 @@ export function Landing() {
       <p className="mt-3 text-lg text-muted">
         Live bikes and free docks at the Divvy stations you use, so you know before you walk over.
       </p>
+      <p className="mt-3 text-muted">
+        Open it just before you head out: it shows whether there&apos;s a bike (or a free dock) waiting at your station
+        right now, and keeps updating while it&apos;s open.
+      </p>
 
       <ol className="mt-8 space-y-2 text-sm">
         <li>

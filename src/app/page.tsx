@@ -72,6 +72,10 @@ export default async function Home() {
               This page shows live bikes and free docks at the Divvy stations you use, so you know before you walk over.
             </p>
             <p className="mt-2 text-sm text-muted">
+              Open it just before you head out: it shows whether there&apos;s a bike (or a free dock) waiting at your
+              station right now, and keeps updating while it&apos;s open.
+            </p>
+            <p className="mt-2 text-sm text-muted">
               Start below: type a street, like Ellis, pick the station you leave from, and follow it. Its counts will
               update here on their own while the page is open.
             </p>
