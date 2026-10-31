@@ -13,6 +13,8 @@ export type Follow = {
   need: "bike" | "dock";
   name?: string;
   capacity?: number;
+  lat?: number;
+  lon?: number;
 };
 
 export type Status = {
@@ -28,10 +30,21 @@ export type Status = {
 const STATUS_COLUMNS = "station_id, bikes, ebikes, docks, is_renting, is_returning, updated_at";
 const TICK_MS = 5000;
 
-// The page's live part. The server renders the first counts; after that,
+export type Live = {
+  statuses: Record<string, Status>;
+  bumps: Record<string, number>;
+  state: Freshness;
+  latestRun: Run | null;
+  lastOkAt: string | null;
+  now: number;
+};
+
+// The page's live state. The server renders the first counts; after that,
 // Supabase Realtime pushes each changed station_status row (only stations this
 // person follows, enforced by RLS) and each new worker run. See docs/data-flow.md.
-export function LiveStations({
+// One subscription feeds both the cards and the map. Nothing is subscribed
+// until the person follows a station.
+export function useLiveStatus({
   follows,
   initialStatuses,
   initialRun,
@@ -41,7 +54,7 @@ export function LiveStations({
   initialStatuses: Record<string, Status>;
   initialRun: Run | null;
   initialLastOkAt: string | null;
-}) {
+}): Live {
   const supabase = useSupabase();
   const [statuses, setStatuses] = useState(initialStatuses);
   const [latestRun, setLatestRun] = useState(initialRun);
@@ -63,11 +76,9 @@ export function LiveStations({
 
   // Catch up on anything missed before (re)connecting, e.g. while the tab slept.
   const catchUp = useCallback(async () => {
-    if (!supabase) return;
+    if (!supabase || !idsKey) return;
     const [{ data: rows }, { data: runs }, { data: okRuns }] = await Promise.all([
-      idsKey
-        ? supabase.from("station_status").select(STATUS_COLUMNS).in("station_id", idsKey.split(",")).returns<Status[]>()
-        : Promise.resolve({ data: [] as Status[] }),
+      supabase.from("station_status").select(STATUS_COLUMNS).in("station_id", idsKey.split(",")).returns<Status[]>(),
       supabase.from("runs").select("ok, finished_at").order("finished_at", { ascending: false }).limit(1).returns<Run[]>(),
       supabase.from("runs").select("finished_at").eq("ok", true).order("finished_at", { ascending: false }).limit(1),
     ]);
@@ -77,10 +88,10 @@ export function LiveStations({
   }, [supabase, idsKey]);
 
   useEffect(() => {
-    if (!supabase) return;
-    let channel = supabase.channel("live");
-    if (idsKey) {
-      channel = channel.on<Status>(
+    if (!supabase || !idsKey) return;
+    const channel = supabase
+      .channel("live")
+      .on<Status>(
         "postgres_changes",
         { event: "*", schema: "public", table: "station_status", filter: `station_id=in.(${idsKey})` },
         (payload) => {
@@ -89,12 +100,11 @@ export function LiveStations({
           setStatuses((prev) => ({ ...prev, [row.station_id]: row }));
           setBumps((prev) => ({ ...prev, [row.station_id]: (prev[row.station_id] ?? 0) + 1 }));
         },
-      );
-    }
-    channel = channel.on<Run>("postgres_changes", { event: "INSERT", schema: "public", table: "runs" }, (payload) => {
-      setLatestRun(payload.new);
-      if (payload.new.ok) setLastOkAt(payload.new.finished_at);
-    });
+      )
+      .on<Run>("postgres_changes", { event: "INSERT", schema: "public", table: "runs" }, (payload) => {
+        setLatestRun(payload.new);
+        if (payload.new.ok) setLastOkAt(payload.new.finished_at);
+      });
     channel.subscribe((status) => {
       setConnected(status === "SUBSCRIBED");
       if (status === "SUBSCRIBED") catchUp();
@@ -111,8 +121,12 @@ export function LiveStations({
     return () => clearInterval(timer);
   }, []);
 
-  const state = freshness(latestRun, connected, now);
+  return { statuses, bumps, state: freshness(latestRun, connected, now), latestRun, lastOkAt, now };
+}
 
+// The followed stations' cards, fed by useLiveStatus.
+export function LiveStations({ follows, live }: { follows: Follow[]; live: Live }) {
+  const { statuses, bumps, state, latestRun, lastOkAt, now } = live;
   return (
     <>
       <FreshnessLine state={state} latestRun={latestRun} lastOkAt={lastOkAt} now={now} />

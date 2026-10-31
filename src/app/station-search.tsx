@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { followStation, type FollowState } from "./actions";
 
-type Result = { id: string; name: string; capacity: number };
+export type Result = { id: string; name: string; capacity: number };
 type Search =
   | { state: "idle" }
   | { state: "loading" }
@@ -12,10 +12,17 @@ type Search =
 
 const DEBOUNCE_MS = 300;
 
-export function StationSearch() {
+// The picked station lives in the parent, so a click on the map can start the
+// same follow form as a search result.
+export function StationSearch({
+  picked,
+  setPicked,
+}: {
+  picked: Result | null;
+  setPicked: (station: Result | null) => void;
+}) {
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState<Search>({ state: "idle" });
-  const [picked, setPicked] = useState<Result | null>(null);
   const [saveState, save, saving] = useActionState<FollowState, FormData>(followStation, {});
 
   useEffect(() => {
@@ -48,7 +55,7 @@ export function StationSearch() {
       setPicked(null);
       setQuery("");
     }
-  }, [saveState.savedAt]);
+  }, [saveState.savedAt, setPicked]);
 
   if (picked) {
     return (

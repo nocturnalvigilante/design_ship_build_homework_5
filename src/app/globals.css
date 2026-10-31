@@ -66,3 +66,70 @@ body {
     outline: 2px solid var(--accent);
   }
 }
+
+/* Map pins for followed stations (src/app/stations-map.tsx). The anchor has no
+   size, so the pin is centred above the station's point by CSS. */
+.dc-pin-anchor {
+  background: none;
+  border: none;
+}
+
+.dc-pin {
+  position: absolute;
+  left: 0;
+  bottom: 6px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  white-space: nowrap;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 2px solid #ffffff;
+  color: #ffffff;
+  font: 600 0.8rem/1.2 var(--font-sans), system-ui, sans-serif;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.35);
+}
+
+/* The little point under the pill, on the station itself. */
+.dc-pin::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 2px solid #ffffff;
+  background: inherit;
+  transform: translateX(-50%);
+}
+
+.dc-pin-good {
+  background: #1e7e34;
+}
+
+.dc-pin-empty {
+  background: #b3261e;
+}
+
+.dc-pin-none {
+  background: #5f6368;
+}
+
+.dc-pin-name {
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.dc-pin-count {
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.dc-pin-unit {
+  font-weight: 400;
+  opacity: 0.9;
+}
