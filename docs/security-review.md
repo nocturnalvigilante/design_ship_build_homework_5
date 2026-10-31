@@ -34,3 +34,13 @@ Separately: two secret keys (Supabase secret, Clerk `dockcheck-live-local`) were
 - Signed-out `/` returns the static landing page before any Supabase client is created; the signed-in path still starts with `auth.protect()`. Middleware unchanged.
 - `followStation` still starts with `auth.protect()`. A blank nickname falls back to the station name from the server-fetched Divvy feed, cut to 40 characters, inserted through the user's own client (RLS `with check` on `user_id`).
 - No `dangerouslySetInnerHTML`; the station name in the placeholder is plain JSX. Removing `required` is client-side only; the server still checks length.
+
+## grader-feedback-2 branch (2026-10-31)
+
+`/security-review` on `main...grader-feedback-2` (Leaflet map, directions links, subtitle, when-to-use copy): **no findings.**
+
+- Leaflet pins and tooltips are DOM nodes built with `textContent`; Leaflet 1.9.4 appends elements and only uses `innerHTML` for strings, so nicknames and station names are never parsed as HTML. The only HTML string is the fixed OSM attribution.
+- Directions links use a fixed `https://www.google.com/maps/dir/` prefix with lat/lon from the feed; `rel="noopener noreferrer"`.
+- Signed-out `/` is still the static landing page; signed-in data still behind `auth.protect()` and RLS. Nearby stations come only from Divvy's public feed, never other users' follows.
+- Realtime: same filters and RLS-scoped queries, still one subscription.
+- New packages: `leaflet`, `@types/leaflet` (approved). No new keys; OSM tiles need none.
