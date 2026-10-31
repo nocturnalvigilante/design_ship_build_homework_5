@@ -14,7 +14,13 @@ export type Station = {
   id: string;
   name: string;
   capacity: number;
+  lat: number;
+  lon: number;
 };
+
+// Public counts for one station, straight from Divvy's feed (not the worker's
+// table). Used only for the map's dots around the stations a person follows.
+export type PublicCounts = { bikes: number; docks: number };
 
 export type FeedResult<T> =
   | { ok: true; data: T; lastUpdated: number; stale: boolean }
@@ -43,13 +49,26 @@ async function fetchFeed<T>(name: string): Promise<FeedResult<T[]>> {
   }
 }
 
-type RawStation = { station_id: string; name: string; capacity: number };
+type RawStation = { station_id: string; name: string; capacity: number; lat: number; lon: number };
 
 export async function getStations(): Promise<FeedResult<Station[]>> {
   const feed = await fetchFeed<RawStation>("station_information");
   if (!feed.ok) return feed;
   return {
     ...feed,
-    data: feed.data.map((s) => ({ id: s.station_id, name: s.name, capacity: s.capacity })),
+    data: feed.data.map((s) => ({ id: s.station_id, name: s.name, capacity: s.capacity, lat: s.lat, lon: s.lon })),
+  };
+}
+
+type RawStatus = { station_id: string; num_bikes_available: number; num_docks_available: number };
+
+export async function getPublicCounts(): Promise<FeedResult<Map<string, PublicCounts>>> {
+  const feed = await fetchFeed<RawStatus>("station_status");
+  if (!feed.ok) return feed;
+  return {
+    ...feed,
+    data: new Map(
+      feed.data.map((s) => [s.station_id, { bikes: s.num_bikes_available, docks: s.num_docks_available }]),
+    ),
   };
 }
