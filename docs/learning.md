@@ -111,3 +111,19 @@ Called twice, 3 minutes apart, just after midnight on 28 Oct 2026 (`docs/evidenc
 **Clerk (development instance, free plan)**: development instances are for testing and are capped on users; ours has 3. Check Clerk → **Billing** says Free with no card. Nothing to cap unless you upgrade.
 
 **Rule for all three:** no card on file; if one is ever required, set the cap first.
+
+## 6. Quiz on how the system works (Be Ready to Explain)
+
+*"Quiz me on how my system works, one question at a time, and tell me what I got wrong. Start with the questions in Be Ready to Explain."* 2026-10-31. Four questions, one per F1–F4; answered together, then checked against the code and logs.
+
+**Q1 (F1, tracing a change).** A bike is taken from Ellis & 58th ("Lab"). What happens until the page shows one fewer?
+Answer: Divvy's feed drops `num_bikes_available`; Cron POSTs `poll-divvy` with the Vault key (else 401); `runOnce` loads the snapshot and the feed in parallel; `changedRows` finds Lab's `bikes` differs; the changed rows are upserted with `updated_at`; a `runs` row is inserted; Realtime sends the `UPDATE` on channel `live` (filter `station_id=in.(…)`, RLS checks `follows`); `setStatuses` and `setBumps` update; the card re-renders and the tick plays; the `runs` INSERT resets "checked N s ago". **Correct.**
+
+**Q2 (F2, the data flow).** What counts as a change, and what breaks if `last_reported` counted?
+Answer: any of `bikes, ebikes, docks, is_renting, is_returning` differing, or a station missing from the snapshot. Counting `last_reported` would rewrite most stations every run, flood Realtime, fire the tick on unchanged cards, and make `rows_changed` meaningless. **Correct, one number off:** about **1,100** rows a run (1,116 of 2,076 moved `last_reported` in 3 min), not ~2,000. Still ~40× the ~28 real changes.
+
+**Q3 (F3, freshness).** Where does "checked 20 s ago" come from; stale vs down?
+Answer: `ago(latestRun.finished_at, now)`; `latestRun` is the newest `runs` row (server render, then Realtime INSERTs, then `catchUp()` after reconnect); `now` ticks every 5 s. `freshness()`: not connected → loading; no run in 2 min → **stale** ("Updates have paused"); else `ok` ? fresh : **down**. Stale is silence; down is the worker reporting a failure. **Correct.**
+
+**Q4 (F4, agentic workflow).** What does `npm run test:worker` check; what did the last three runs show?
+Answer: seven tests on two saved Divvy responses 3 min apart, no network: parses all 2,076; saves exactly the 28 changed; `last_reported` alone isn't a change (>1,000 such); disabled bikes/docks alone isn't; same response twice saves nothing; empty snapshot saves all; non-GBFS throws so the run is logged failed. Runs: changed 0 / 9 / 0, ~30 s apart, run 3 saw the same `feed_last_updated` as run 2. **Mostly correct.** Corrections: seven *tests*, not assertions. And the 914 ms first run was **not** a cold start followed by warm ones: every call logs `booted` and `shutdown`, so all three were cold; that one call was just slower (Divvy or the database).
