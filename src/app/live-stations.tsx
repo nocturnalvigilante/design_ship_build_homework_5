@@ -243,6 +243,17 @@ function StationCard({
           No live counts for this station yet. Divvy may no longer list it.
         </p>
       )}
+
+      {follow.lat !== undefined && follow.lon !== undefined && (
+        <a
+          href={`https://www.google.com/maps/dir/?api=1&destination=${follow.lat},${follow.lon}&travelmode=walking`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 inline-flex min-h-11 items-center text-sm text-accent hover:underline"
+        >
+          Directions in Google Maps
+        </a>
+      )}
     </li>
   );
 }
