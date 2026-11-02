@@ -1,17 +1,36 @@
 # DockCheck Live
 
-**Follow the Divvy stations you use, and watch their bikes and docks change without refreshing.**
+**Know before you walk to the bike station.** DockCheck Live tells a Divvy rider, as they leave, whether their station has a bike (or a free dock) waiting, and if not, where to go instead.
 
 Live: **https://design-ship-build-homework-5.vercel.app** (make an account with Google or email)
 
-> I follow Ellis & 58th as "Lab" → a worker on Supabase polls Divvy and saves only what changed → my open page ticks from 3 bikes to 2 on its own, and tells me how fresh that is.
-
 MPCS 51238 Design, Build, Ship, Assignment 5: Live Data System. Extends DockCheck (Assignment 4, a separate repo and Supabase project, untouched).
+
+## Why
+
+**Who it's for.** A UChicago student who rides Divvy between the same few places: the lab, home, the gym.
+
+**The problem.** Divvy stations run out. You walk five minutes to Ellis & 55th and there are no bikes; or you ride to class and the station is full, so you circle looking for a dock. You find out too late, when you're already standing there.
+
+**The one question it answers:** *"Should I walk to my station right now, or go somewhere else?"*
+
+**Why not a spreadsheet (or the Divvy map)?** A spreadsheet can list your stations; it can't tell you what's there *now*. The Divvy app shows every station in the city; you have to find yours and work out what to do. DockCheck Live does three things neither does:
+
+1. **It's live.** Counts change on your screen as bikes leave and arrive, without refreshing.
+2. **It tells you what to do.** Each of your stations says *Go*, *Go now: only a few left*, or *Empty: don't walk over*, and when it's empty it names the nearest station that has bikes, with the walk time and directions.
+3. **It's honest about freshness.** "Live · checked 12 s ago", or a clear warning when updates stop, so you never trust an old number.
+
+**The core loop.** Follow the station you leave from once (search, or click it on the map). Then open DockCheck just before you head out, glance at the verdict, and go. A full walk-through from the rider's side: [`docs/user-journey.md`](docs/user-journey.md).
+
+> I follow Ellis & 58th as "Lab" → a worker on Supabase polls Divvy and saves only what changed → my open page ticks from 3 bikes to 2 on its own, tells me how fresh that is, and if Lab empties, where to go instead.
 
 ## What it does
 
-- **Follow the stations you use**, with your own name for each ("Lab", "Home"), and whether you need a bike or a free dock there.
+- **Follow the stations you use**, with your own name for each ("Lab", "Home", or leave it blank), and whether you need a bike or a free dock there. Search by street or click a station on the map.
+- **Each station gives a verdict:** Go (3 or more), Go now (1–2, may be gone by the time you arrive), Empty / Full, or Closed.
+- **When your station can't help, it says where to go instead:** the nearest station within 1.5 km with more than two left, its walking minutes, and a Directions link.
 - **Counts update on their own.** A worker checks Divvy every 30 s and saves only the stations that changed; Supabase Realtime pushes those changes to your open page. A count that changes lights up for a moment.
+- **A map** of your stations with their live counts, and the stations around them.
 - **You always know how fresh it is:** "Live · checked 12 s ago", or a clear warning when it isn't.
 - **Your follows are yours:** nobody else can see them, and Realtime only sends you the stations you follow.
 
@@ -32,7 +51,9 @@ Supabase Cron ──POST every 30 s──▶ worker (Edge Function poll-divvy)
 ## Design process
 
 - **Same main task as A4, now live.** A4 answered "is there a bike?" when you opened the page. A5 keeps answering while the page stays open, so you can watch for the bike to come back.
-- **Glanceable, unchanged from A4.** One big number per station, red at 0 and green otherwise; e-bike / classic split underneath.
+- **A verdict before the number.** Feedback on A4 (a grader's video, `docs/evidence/a4-grader-feedback.md`, and the instructor: "what is the value? … how would this be different than a spreadsheet?") said a number alone doesn't tell you what to do. So each card leads with one line, Go / Go now / Empty / Closed, coloured green / amber / red, then the big number, then e-bike / classic. The thresholds live in `src/lib/advice.ts` and are unit-tested (`npm run test:advice`).
+- **Never a dead end.** An empty, closed or nearly-empty station shows "Try instead" with the nearest station that has more than two left. Its count is labelled "when you opened the page", because it comes from Divvy's public feed at page load, not from Realtime.
+- **Say what it is and why before asking anything.** Signed-out visitors get a landing page: the rider's problem, an example of the moment it matters (an empty station and where to go instead), why it's more than a list, and one main button, "Follow your station".
 - **Live data has its own states**, all based on the newest worker run:
 
   | State | When | What you see |
@@ -45,7 +66,8 @@ Supabase Cron ──POST every 30 s──▶ worker (Edge Function poll-divvy)
   Stale and down are deliberately different: stale means the worker stopped reporting, down means the worker is fine but Divvy isn't. Counts stay visible but dimmed in both, because an old number is still useful if it's labelled as old.
 - **Changes are noticeable, not noisy.** A changed count gets a 1.5 s highlight (an outline instead with reduced motion). "Checked … ago" ticks every 5 s without announcing itself to screen readers; the stale and down boxes do (`role="status"`).
 - **Other states from A4 kept:** empty ("You're not following any stations yet"), search loading / nothing found / Divvy down, a station not renting, a station Divvy no longer lists.
-- **Mobile-first:** a single column up to 32rem, touch targets at least 44 px, labelled form fields, dark mode, times in Chicago time.
+- **Map beside the list.** The grader asked twice for a map. Your stations are pins with their live count; nearby stations are dots you can click to follow. Leaflet with OpenStreetMap tiles, no API key.
+- **Mobile-first:** a single column on phones (a 2–3 column grid on desktop), touch targets at least 44 px, labelled form fields, dark mode, times in Chicago time.
 
 ## Stack
 
@@ -81,6 +103,7 @@ Realtime only sends a change when all three are in place: the table is in the `s
 
 ```bash
 npm run test:worker          # worker logic on two saved Divvy responses
+npm run test:advice          # verdict and "try instead" logic
 npx playwright test          # page, against a local production build
 BASE_URL=https://design-ship-build-homework-5.vercel.app npx playwright test   # against the live site
 ```
@@ -89,6 +112,9 @@ BASE_URL=https://design-ship-build-homework-5.vercel.app npx playwright test   #
 - [`e2e/isolation.spec.ts`](e2e/isolation.spec.ts): two users each follow a station; neither can see the other's.
 - [`e2e/states.spec.ts`](e2e/states.spec.ts): empty, nothing found, and the live line reaching "Live · checked".
 - [`e2e/freshness.spec.ts`](e2e/freshness.spec.ts): the loading / fresh / stale / down rules.
+- [`src/lib/advice.test.ts`](src/lib/advice.test.ts): Go / Go now / Empty / Closed thresholds; the nearest alternative skips low, unknown, too-far and same stations, and uses docks when you need a dock.
+- [`e2e/value.spec.ts`](e2e/value.spec.ts): the landing page leads with the problem and one action; each followed station shows a verdict.
+- [`e2e/map.spec.ts`](e2e/map.spec.ts), [`e2e/feedback.spec.ts`](e2e/feedback.spec.ts): map pins and dot-to-follow, optional nickname, desktop grid.
 
 ## Run it locally
 
