@@ -53,8 +53,8 @@ below apply here too. The last section says what this repo changed in response.
 
 ## What DockCheck Live changed
 
-- **1 (landing page):** signed-out visitors at `/` see a landing page that says it's for Divvy bikes and docks, shows an example station card, and has Sign in / Sign up buttons (`src/app/landing.tsx`, `landing.png`).
-- **2 (name):** the landing page leads with "Live bikes and free docks at the Divvy stations you use", and the signed-in header now has the subtitle "Live Divvy bikes & docks" under "DockCheck Live".
+- **1 (landing page):** signed-out visitors at `/` see a landing page that says it's for Divvy bikes and docks, shows an example station card, and has "Follow your station" (sign up) and "Sign in" buttons (`src/app/landing.tsx`, `landing.png`).
+- **2 (name):** the landing page opens with "DockCheck Live · for Divvy riders" above the headline "Know before you walk to the bike station.", and the signed-in header now has the subtitle "Live Divvy bikes & docks" under "DockCheck Live".
 - **3 (bare first page):** the signed-in page now has a map of nearby Divvy stations beside the follow form, and the empty state says what the page does and gives two concrete first steps: click a blue dot on the map, or type a street like Ellis in the search box (`map-empty.png`).
 - **4 (map):** a Leaflet map with OpenStreetMap tiles (`src/app/stations-map.tsx`). Followed stations are pins showing their live count of bikes or docks (whichever the person needs), fed by the same Realtime state as the cards, so they tick together. Other stations within 2 km show as dots with their name and Divvy's public bikes/docks counts when the page loaded; clicking a dot opens the follow form for that station. Each card also has a "Directions in Google Maps" link (`map-desktop.png`, `map-mobile.png`).
 - **5 (when to use it):** the landing page and the empty state both say: "Open it just before you head out: it shows whether there's a bike (or a free dock) waiting at your station right now, and keeps updating while it's open."
