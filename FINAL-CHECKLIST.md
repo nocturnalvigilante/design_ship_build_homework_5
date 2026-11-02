@@ -51,5 +51,5 @@ Read `docs/learning.md` §3–§6 and say each answer out loud once, without not
 
 | # | Item | Done |
 |---|---|---|
-| S1 | Google Classroom: https://design-ship-build-homework-5.vercel.app | ☐ |
-| S2 | Google Classroom: https://github.com/nocturnalvigilante/design_ship_build_homework_5 | ☐ |
+| S1 | Google Classroom: https://design-ship-build-homework-5.vercel.app | ☑ |
+| S2 | Google Classroom: https://github.com/nocturnalvigilante/design_ship_build_homework_5 | ☑ |
