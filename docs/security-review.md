@@ -44,3 +44,11 @@ Separately: two secret keys (Supabase secret, Clerk `dockcheck-live-local`) were
 - Signed-out `/` is still the static landing page; signed-in data still behind `auth.protect()` and RLS. Nearby stations come only from Divvy's public feed, never other users' follows.
 - Realtime: same filters and RLS-scoped queries, still one subscription.
 - New packages: `leaflet`, `@types/leaflet` (approved). No new keys; OSM tiles need none.
+
+## value-prop branch (2026-11-01)
+
+`/security-review` on `main...value-prop` (verdict and "try instead" on cards, landing rewrite, README/user journey): **no findings.**
+
+- Signed-out `/` is still the static landing page; signed-in data still behind `auth.protect()` and RLS. The `nearby` list passed to the cards is Divvy's public feed only.
+- "Directions there" uses the fixed `https://www.google.com/maps/dir/` prefix with numeric lat/lon; station names and verdicts are JSX text. No new `innerHTML`.
+- `src/lib/advice.ts` is pure maths and strings: no network, database or env access. No new secrets.
