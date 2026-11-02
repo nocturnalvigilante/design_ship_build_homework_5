@@ -14,13 +14,13 @@ The answer to "why not a spreadsheet?": a spreadsheet can list your stations, bu
 
 | # | Item | Owner | Done |
 |---|---|---|---|
-| V1 | **Landing page leads with the problem and the promise**: the problem (walk to an empty station, or arrive with nowhere to dock), what you get, and one clear action | C | ☐ |
-| V2 | **Each card gives a verdict, not just a number**: "Go: 5 bikes", "Low: 1 bike, go now", "Empty" | C | ☐ |
-| V3 | **When your station is empty, say where to go instead**: the nearest station with bikes (or docks), with walking minutes and a Directions link. This is what a spreadsheet can't do. | C | ☐ |
-| V4 | **README opens with "Why"**: who it's for, the problem, the one question it answers, why not a spreadsheet, the core loop | C | ☐ |
-| V5 | **User journey from the user's perspective** (`docs/user-journey.md`): a student leaving the lab at 5:40, step by step, with screenshots | C | ☐ |
-| V6 | **Design write-up for the live states** (loading, fresh, stale, down, the tick on a change) in the README (old C7) | C | ☐ |
-| V7 | Tests for V1–V3, run against the live site; screenshots in `docs/evidence/` | C | ☐ |
+| V1 | **Landing page leads with the problem and the promise**: the problem (walk to an empty station, or arrive with nowhere to dock), what you get, and one clear action | C | ☑ |
+| V2 | **Each card gives a verdict, not just a number**: "Go: 5 bikes", "Low: 1 bike, go now", "Empty" | C | ☑ |
+| V3 | **When your station is empty, say where to go instead**: the nearest station with bikes (or docks), with walking minutes and a Directions link. This is what a spreadsheet can't do. | C | ☑ |
+| V4 | **README opens with "Why"**: who it's for, the problem, the one question it answers, why not a spreadsheet, the core loop | C | ☑ |
+| V5 | **User journey from the user's perspective** (`docs/user-journey.md`): a student leaving the lab at 5:40, step by step, with screenshots | C | ☑ |
+| V6 | **Design write-up for the live states** (loading, fresh, stale, down, the tick on a change) in the README (old C7) | C | ☑ |
+| V7 | Tests for V1–V3, run against the live site; screenshots in `docs/evidence/` | C | ☑ |
 
 ## 2. Brief items still open
 
