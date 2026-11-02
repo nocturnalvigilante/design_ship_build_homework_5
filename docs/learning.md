@@ -38,7 +38,7 @@ Called twice, 3 minutes apart, just after midnight on 28 Oct 2026 (`docs/evidenc
 | **Node 22 / npm / npx** (fe02) | `npm run dev`, `build`, `lint`, `test:worker` | ✅ v22.11.0 |
 | **Playwright** 1.63 | end-to-end tests, locally or against the live site with `BASE_URL` | ✅ 10 passed locally; feedback spec passed live |
 | **ffmpeg** | pulling frames and audio out of screen recordings (grader feedback video) | ✅ 4.2.7 |
-| **Clerk CLI** `clerk` | the brief lists it; would manage users and keys from the terminal | ❌ not installed. Clerk is configured in its dashboard; installing needs your OK |
+| **Clerk CLI** `clerk` | the brief lists it; manage users and keys from the terminal, e.g. `clerk users list` to see who has signed up | ✅ `clerk@4.0.0` installed globally on 2026-11-02 (not in `package.json`), telemetry off, signed in and linked to **DockCheck Live** (`app_3LJG4xkvRNmRcBRY8SlJQVN6dHV`, not A4's app). `clerk users list` returned the app's 4 users |
 | **Supabase CLI**, **Vercel CLI**, **GitHub CLI** `gh` | not needed: the MCP, Vercel's GitHub integration and plain git cover them | ❌ not installed |
 | Claude artifacts / Docs MCPs, VS Code MCP | publishing pages, editor diagnostics; not used by this app | available |
 | Google Docs / Drive MCPs | not used | need sign-in in claude.ai |

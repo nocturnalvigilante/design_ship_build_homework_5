@@ -31,7 +31,7 @@ The answer to "why not a spreadsheet?": a spreadsheet can list your stations, bu
 | E1–E3 | **Free plans, no card, spend cap**: Vercel → Settings → Billing says Hobby; Supabase → Org → Billing says Free, Spend cap on; Clerk → Billing says Free. Send a screenshot of each | You | ☐ |
 | E4 | Edge Function calls: every 30 s ≈ 86,400 a month of 500,000 | C (verified in `docs/learning.md`) | ☑ |
 | E6 | Open the live site once every few days until grades are back, so Supabase doesn't pause | You | ☐ |
-| B2 | **Clerk CLI** is listed in the brief and not installed. Say yes and Claude installs it and checks it works | You → C | ☐ |
+| B2 | **Clerk CLI** (listed in the brief): `clerk@4.0.0` installed, linked to DockCheck Live, `clerk users list` returns the app's users (`docs/learning.md` §2) | You → C | ☑ |
 | D6 / G2 | Code in your own GitHub repo, README, commit history showing progress (60 commits since 28 Oct) | C (verified) | ☑ |
 | A7 | Not one-shot: 60 small commits across 5 days, each with a reason | C (verified) | ☑ |
 
