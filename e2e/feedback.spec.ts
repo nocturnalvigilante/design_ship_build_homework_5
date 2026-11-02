@@ -9,8 +9,8 @@ import { USER_B } from "./users";
 test("signed-out visitors see what the app is before signing in", async ({ page }) => {
   await page.setViewportSize({ width: 480, height: 900 });
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "DockCheck Live" })).toBeVisible();
-  await expect(page.getByText(/Divvy stations you use/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Know before you walk to the bike station." })).toBeVisible();
+  await expect(page.getByText(/where to go instead/)).toBeVisible();
   await page.screenshot({ path: "docs/evidence/landing.png", fullPage: true });
 
   await page.getByRole("link", { name: "Sign in" }).click();
@@ -24,6 +24,8 @@ test("a blank nickname uses the station's name, and cards sit side by side on de
   await page.goto("/");
 
   const followed = page.getByRole("region", { name: "Stations you follow" }).getByRole("listitem");
+  // By exact title: a card's "Try instead" box can name another followed station.
+  const cardFor = (name: string) => followed.filter({ has: page.getByText(name, { exact: true }) });
   const add = page.getByRole("region", { name: "Follow a station" });
   const names: string[] = [];
   for (const search of ["Ellis", "57th", "Lake Park"]) {
@@ -31,7 +33,7 @@ test("a blank nickname uses the station's name, and cards sit side by side on de
     const pick = add.getByRole("button").filter({ hasText: search }).first();
     await expect(pick).toBeVisible({ timeout: 30_000 });
     const name = (await pick.locator("span").first().textContent())!;
-    if ((await followed.filter({ hasText: name }).count()) > 0) {
+    if ((await cardFor(name).count()) > 0) {
       names.push(name);
       await add.getByLabel("Find a Divvy station").fill("");
       continue;
@@ -39,22 +41,22 @@ test("a blank nickname uses the station's name, and cards sit side by side on de
     await pick.click();
     // Left blank on purpose.
     await add.getByRole("button", { name: "Follow station" }).click();
-    await expect(followed.filter({ hasText: name })).toBeVisible({ timeout: 30_000 });
+    await expect(cardFor(name)).toBeVisible({ timeout: 30_000 });
     names.push(name);
   }
 
   // The card's title is the station name, shown once.
-  const first = followed.filter({ hasText: names[0] });
+  const first = cardFor(names[0]);
   await expect(first.getByText(names[0], { exact: true })).toHaveCount(1);
 
   // Three cards on one row: same top edge.
-  const tops = await Promise.all(names.map(async (n) => (await followed.filter({ hasText: n }).boundingBox())!.y));
+  const tops = await Promise.all(names.map(async (n) => (await cardFor(n).boundingBox())!.y));
   expect(new Set(tops.map(Math.round)).size, "cards should share a row on desktop").toBe(1);
   await page.screenshot({ path: "docs/evidence/desktop-grid.png", fullPage: true });
 
   // Tidy up.
   for (const n of names) {
-    const card = followed.filter({ hasText: n });
+    const card = cardFor(n);
     await card.getByRole("button", { name: "Unfollow", exact: true }).click();
     await expect(card).toHaveCount(0, { timeout: 30_000 });
   }

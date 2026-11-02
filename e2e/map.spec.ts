@@ -8,7 +8,7 @@ import { USER_B } from "./users";
 
 test("the landing page says when to open the app", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByText(/Open it just before you head out/)).toBeVisible();
+  await expect(page.getByText(/open DockCheck just before you head out/)).toBeVisible();
 });
 
 async function waitForTiles(page: Page) {
@@ -26,6 +26,8 @@ test("the map shows followed stations live and a dot click starts a follow", asy
 
   await expect(page.getByText("Live Divvy bikes & docks")).toBeVisible();
   const followed = page.getByRole("region", { name: "Stations you follow" }).getByRole("listitem");
+  // By exact title: a card's "Try instead" box can name another followed station.
+  const cardFor = (name: string) => followed.filter({ has: page.getByText(name, { exact: true }) });
   const add = page.getByRole("region", { name: "Follow a station" });
   let map = await waitForTiles(page);
 
@@ -34,11 +36,11 @@ test("the map shows followed stations live and a dot click starts a follow", asy
   const pick = add.getByRole("button").filter({ hasText: "Ellis" }).first();
   await expect(pick).toBeVisible({ timeout: 30_000 });
   const labName = (await pick.locator("span").first().textContent())!;
-  if ((await followed.filter({ hasText: labName }).count()) === 0) {
+  if ((await cardFor(labName).count()) === 0) {
     await pick.click();
     await add.getByLabel("What do you call it?").fill("Lab");
     await add.getByRole("button", { name: "Follow station" }).click();
-    await expect(followed.filter({ hasText: labName })).toBeVisible({ timeout: 30_000 });
+    await expect(cardFor(labName)).toBeVisible({ timeout: 30_000 });
   } else {
     await add.getByLabel("Find a Divvy station").fill("");
   }
@@ -50,6 +52,8 @@ test("the map shows followed stations live and a dot click starts a follow", asy
   await expect(labPin.locator(".dc-pin-count")).toHaveText(/^(\d+|closed)$/);
 
   // Click a dot well inside the map: the follow form opens for that station.
+  // Scroll it into view first: taller cards can push the map below the fold.
+  await map.locator(".leaflet-container").scrollIntoViewIfNeeded();
   const box = (await map.locator(".leaflet-container").boundingBox())!;
   const dots = map.locator("path.leaflet-interactive");
   await expect(dots.first()).toBeAttached();
@@ -69,11 +73,11 @@ test("the map shows followed stations live and a dot click starts a follow", asy
   expect(dotName.length).toBeGreaterThan(0);
   await add.getByLabel("What do you call it?").fill("Map pick");
   await add.getByRole("button", { name: "Follow station" }).click();
-  await expect(followed.filter({ hasText: dotName })).toBeVisible({ timeout: 30_000 });
+  await expect(cardFor(dotName)).toBeVisible({ timeout: 30_000 });
   await expect(map.locator(".dc-pin").filter({ hasText: "Map pick" })).toBeVisible({ timeout: 30_000 });
 
   // Each card links to walking directions.
-  const directions = followed.filter({ hasText: labName }).getByRole("link", { name: "Directions in Google Maps" });
+  const directions = cardFor(labName).getByRole("link", { name: "Directions in Google Maps" });
   await expect(directions).toHaveAttribute("href", /google\.com\/maps\/dir\/.*destination=41\.\d+,-87\.\d+/);
   await expect(directions).toHaveAttribute("target", "_blank");
 
