@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ago, freshness, type Freshness, type Run } from "@/lib/freshness";
 import { useSupabase } from "@/lib/supabase-browser";
 import { formatClock } from "@/lib/time";
+import { nearestAlternative, verdict, verdictText, type Candidate, type Verdict } from "@/lib/advice";
 import { unfollowStation } from "./actions";
 
 export type Follow = {
@@ -125,7 +126,7 @@ export function useLiveStatus({
 }
 
 // The followed stations' cards, fed by useLiveStatus.
-export function LiveStations({ follows, live }: { follows: Follow[]; live: Live }) {
+export function LiveStations({ follows, live, nearby }: { follows: Follow[]; live: Live; nearby: Candidate[] }) {
   const { statuses, bumps, state, latestRun, lastOkAt, now } = live;
   return (
     <>
@@ -140,6 +141,7 @@ export function LiveStations({ follows, live }: { follows: Follow[]; live: Live 
             bump={bumps[f.station_id] ?? 0}
             state={state}
             now={now}
+            nearby={nearby}
           />
         ))}
       </ul>
@@ -204,15 +206,26 @@ function StationCard({
   bump,
   state,
   now,
+  nearby,
 }: {
   follow: Follow;
   status?: Status;
   bump: number;
   state: Freshness;
   now: number;
+  nearby: Candidate[];
 }) {
   // Stale or down: still show the counts, but dimmed, since they may be old.
   const old = state === "stale" || state === "down";
+
+  // What to do, not just the number: go, hurry, or go somewhere else.
+  const count = status ? (follow.need === "bike" ? status.bikes : status.docks) : 0;
+  const closed = status ? (follow.need === "bike" ? !status.is_renting : !status.is_returning) : false;
+  const v: Verdict | null = status ? verdict(count, closed) : null;
+  const alternative =
+    (v === "empty" || v === "closed" || v === "low") && follow.lat !== undefined && follow.lon !== undefined
+      ? nearestAlternative({ station_id: follow.station_id, lat: follow.lat, lon: follow.lon }, follow.need, nearby)
+      : null;
 
   return (
     <li className="rounded-xl border border-line bg-card p-4">
@@ -231,6 +244,13 @@ function StationCard({
         </form>
       </div>
 
+      {v && state !== "loading" && (
+        <p role="status" className={`mb-2 text-sm font-semibold ${VERDICT_COLOUR[v]}`}>
+          {verdictText(v, follow.need)}
+          {old && <span className="font-normal text-muted"> (may be out of date)</span>}
+        </p>
+      )}
+
       {status ? (
         <div className={old ? "opacity-60" : undefined}>
           <Counts status={status} need={follow.need} capacity={follow.capacity} bump={bump} />
@@ -244,9 +264,27 @@ function StationCard({
         </p>
       )}
 
+      {alternative && (
+        <div className="mt-3 rounded-lg border border-line bg-background p-3 text-sm">
+          <p className="font-medium">{v === "low" ? "If it's gone, try" : "Try instead"}: {alternative.name}</p>
+          <p className="text-muted">
+            {alternative.count} {follow.need === "bike" ? "bikes" : "free docks"} when you opened the page · about{" "}
+            {alternative.minutes} min walk
+          </p>
+          <a
+            href={directions(alternative.lat, alternative.lon)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-11 items-center text-accent hover:underline"
+          >
+            Directions there
+          </a>
+        </div>
+      )}
+
       {follow.lat !== undefined && follow.lon !== undefined && (
         <a
-          href={`https://www.google.com/maps/dir/?api=1&destination=${follow.lat},${follow.lon}&travelmode=walking`}
+          href={directions(follow.lat, follow.lon)}
           target="_blank"
           rel="noopener noreferrer"
           className="mt-3 inline-flex min-h-11 items-center text-sm text-accent hover:underline"
@@ -256,6 +294,17 @@ function StationCard({
       )}
     </li>
   );
+}
+
+const VERDICT_COLOUR: Record<Verdict, string> = {
+  go: "text-good",
+  low: "text-warn",
+  empty: "text-empty",
+  closed: "text-empty",
+};
+
+function directions(lat: number, lon: number) {
+  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}&travelmode=walking`;
 }
 
 function Counts({

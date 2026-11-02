@@ -64,7 +64,7 @@ export function Dashboard({
           </div>
         )}
 
-        {!loadError && follows.length > 0 && <LiveStations follows={follows} live={live} />}
+        {!loadError && follows.length > 0 && <LiveStations follows={follows} live={live} nearby={nearby} />}
       </section>
 
       {/* Map and follow form side by side on desktop; stacked on phones. */}

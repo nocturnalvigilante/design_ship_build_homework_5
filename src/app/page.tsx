@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { UserButton } from "@clerk/nextjs";
 import { getPublicCounts, getStations } from "@/lib/gbfs";
 import type { Run } from "@/lib/freshness";
+import { km } from "@/lib/advice";
 import { createSupabaseClient } from "@/lib/supabase";
 import { Dashboard } from "./dashboard";
 import type { Follow, Status } from "./live-stations";
@@ -88,10 +89,3 @@ export default async function Home() {
 
 const NEARBY_KM = 2;
 const MAX_NEARBY = 300;
-
-// Distance in km between two points (equirectangular; fine at city scale).
-function km(lat1: number, lon1: number, lat2: number, lon2: number) {
-  const x = ((lon2 - lon1) * Math.PI) / 180 * Math.cos((((lat1 + lat2) / 2) * Math.PI) / 180);
-  const y = ((lat2 - lat1) * Math.PI) / 180;
-  return Math.sqrt(x * x + y * y) * 6371;
-}
